@@ -1,0 +1,6 @@
+.*
+!.gitignore
+ab*.js
+logs/
+node_modules/*
+servers
