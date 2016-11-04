@@ -1,7 +1,7 @@
 {
   "name": "csgf_bot",
   "version": "1.0.0",
-  "description": "CSGF.RU bot pkg file",
+  "description": "CSGF bot pkg file",
   "main": "app.js",
   "dependencies": {
     "crypto": "^0.0.3",
@@ -29,16 +29,6 @@
   "scripts": {
     "test": "echo \\\"Error: no test specified\\\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://SKONIKS@bitbucket.org/SKONIKS/csgf-bot.git"
-  },
-  "keywords": [
-    "csgf",
-    "bot",
-    "skoniks"
-  ],
   "author": "skoniks",
-  "license": "ISC",
-  "homepage": "https://bitbucket.org/SKONIKS/csgf-bot#readme"
+  "license": "ISC"
 }
