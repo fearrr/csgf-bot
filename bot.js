@@ -20,8 +20,21 @@ var auth = require('http-auth'),
 
 server.listen(config.ports.botServerPort);
 
-var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
-    rediClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
+if(redis_conf.unix){
+    var redis_config = {
+        'path': redis_conf.path,
+        'password': redis_conf.password
+    }
+} else {
+    var redis_config = {
+        'host': redis_conf.host,
+        'port': redis_conf.port,
+        'password': redis_conf.password
+    }
+}
+
+var redisClient = redis.createClient(redis_config),
+    rediClient = redis.createClient(redis_config);
 
 var details = {
     account_name: config.bots.game_bots.game_bot.username,
@@ -51,6 +64,14 @@ const redisChannels = redis_conf.Bot_Channels;
 function steamBotLogger(log) {
     if(typeof(log) == "string"||typeof(log) == "number"||typeof(log) == "boolean"||typeof(log) == "object") console.tag('Бот').log(log);
 }
+function makeErr() {
+    errCount++;
+	if (errCount > 3){
+		errCount = 0;
+		reWebLogonShop();
+	}
+}
+
 function generatekey(secret) {
     code = SteamTotp.generateAuthCode(secret);
     steamBotLogger('Код Авторизации : ' + code);
@@ -145,6 +166,7 @@ function handleOffers() {
 								tradeOfferId: offer.tradeofferid
 							}, function(err, body) {
 								if (err) {
+                                    makeErr();
 									steamBotLogger('Ошибка. Принятие обмена #' + offer.offerid).tag('Бот').log(err);
 								}
 							});
@@ -163,6 +185,7 @@ function handleOffers() {
                         tradeOfferId: offer.tradeofferid
                     }, function(err, response) {
                         if (err) {
+                            makeErr();
                             steamBotLogger('Ошибка проврки на задержку: ' + err);
                             offers.declineOffer({
                                 tradeOfferId: offer.tradeofferid
@@ -567,7 +590,8 @@ var declineOffersProcceed = function(offerid) {
 			});
             declineProcceed = false;
         } else {
-            steamBotLogger('Ошибка. Не можем отклонить обмен #' + offer.offerid).tag('Бот').log(err);
+            makeErr();
+            steamBotLogger('Ошибка. Не можем отклонить обмен #' + offer.offerid);
             declineProcceed = false;
         }
     });

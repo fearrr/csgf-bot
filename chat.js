@@ -9,8 +9,21 @@ var auth = require('http-auth'),
     redis = require('redis'),
     requestify = require('requestify');
 
-var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
-    client = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
+    
+if(redis_conf.unix){
+    var redis_config = {
+        'path': redis_conf.path,
+        'password': redis_conf.password
+    }
+} else {
+    var redis_config = {
+        'host': redis_conf.host,
+        'port': redis_conf.port,
+        'password': redis_conf.password
+    }
+}
+
+var redisClient = redis.createClient(redis_config);
 
 server.listen(config.ports.chatServerPort);
 

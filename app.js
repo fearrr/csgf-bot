@@ -3,6 +3,7 @@ var auth = require('http-auth'),
     console = process.console,
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
+    default_conf = require('./config/default.js'),
     app = require('express')(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
@@ -11,9 +12,21 @@ var auth = require('http-auth'),
     requestify = require('requestify');
 
 var users = [];
+if(redis_conf.unix){
+    var redis_config = {
+        'path': redis_conf.path,
+        'password': redis_conf.password
+    }
+} else {
+    var redis_config = {
+        'host': redis_conf.host,
+        'port': redis_conf.port,
+        'password': redis_conf.password
+    }
+}
 
-var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
-    client = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
+var redisClient = redis.createClient(redis_config),
+    client = redis.createClient(redis_config);
     
 const redisChannels = redis_conf.App_Channels;
 
@@ -68,13 +81,13 @@ redisClient.on("message", function (channel, message) {
     }
 	if (channel == redisChannels.fuser_add) {
         var id = JSON.parse(message);
-		if (id != '76561197960265728'){
+		if (id != default_conf.bonus_id){
             requestify.post('http://' + config.web_api_data.domain + '/api/userinfo', {
                 steamid: id,
                 secretKey: config.web_api_data.secretKey
             }).then(function (response) {
                 user = JSON.parse(response.body);
-                if(user.steamid64 != '76561197960265728'){
+                if(user.steamid64 != default_conf.bonus_id){
                     io.sockets.emit('online_add', user);
                     users[id] = {
                         user: user,
@@ -148,13 +161,13 @@ io.sockets.on('connection', function(socket) {
 	adress = socket.request.connection.remoteAddress;
 	adress = adress.replace(/[^.0-9]/gim,'');
 	socket.on('steamid64', function(id) {
-		if (id != '76561197960265728'){
+		if (id != default_conf.bonus_id){
             requestify.post('http://' + config.web_api_data.domain + '/api/userinfo', {
                 steamid: id,
                 secretKey: config.web_api_data.secretKey
             }).then(function (response) {
                 user = JSON.parse(response.body);
-                if(user.steamid64 != '76561197960265728'){
+                if(user.steamid64 != default_conf.bonus_id){
                     users[socket.id] = {
                         user: user,
                         ip: adress,

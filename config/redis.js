@@ -5,6 +5,8 @@ var redis_conf = {
     host: '127.0.0.1',
     port: '6379',
     password: '',
+    path: '',
+    unix: false,
     App_Channels: {
         show_winners: 'show.winners',
         queue: 'queue',
@@ -43,3 +45,4 @@ var redis_conf = {
 
 }
 module.exports = redis_conf;
+

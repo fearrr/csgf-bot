@@ -24,8 +24,21 @@ server.listen(config.ports.shopServerPort);
 
 const redisChannels = redis_conf.Shop_Channels;
 
-var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
-    rediClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
+if(redis_conf.unix){
+    var redis_config = {
+        'path': redis_conf.path,
+        'password': redis_conf.password
+    }
+} else {
+    var redis_config = {
+        'host': redis_conf.host,
+        'port': redis_conf.port,
+        'password': redis_conf.password
+    }
+}
+
+var redisClient = redis.createClient(redis_config),
+    rediClient = redis.createClient(redis_config);
     
 function query(sql, callback) {
 	if (typeof callback === 'undefined') {
