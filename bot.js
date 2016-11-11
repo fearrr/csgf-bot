@@ -20,8 +20,8 @@ var auth = require('http-auth'),
 
 server.listen(config.ports.botServerPort);
 
-var redisClient = redis.createClient(),
-    rediClient = redis.createClient();
+var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
+    rediClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
 
 var details = {
     account_name: config.bots.game_bots.game_bot.username,
@@ -341,7 +341,11 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
                         }
 					}
 				});
-			}
+			} else {
+                steamBotLogger('1');
+                steamBotLogger('Не можем отправить обмен');
+                sendProcceed = false;
+            }
 		});
 		offers.loadMyInventory({
 			appId: appId,
@@ -349,6 +353,7 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 		}, function(err, items) {
 			if (err) {
 				steamBotLogger(err);
+                steamBotLogger('2');
 				sendProcceed = false;
 				return;
 			}
@@ -644,7 +649,7 @@ var sendProcceed = false;
 var delayForNewGame = false;
 
 setInterval(queueProceed, 3000);
-setInterval(checkBrokenGames, 300000);
+setInterval(checkBrokenGames, 600000);
 setInterval(AcceptMobileOffer, 10000);
 var timetrade = [];
 

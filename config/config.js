@@ -8,12 +8,12 @@ var config = {
         price_update_timer: 10800   // Price update timer
     },
     web_api_data:{
-        secretKey: '',    // Provided to prevent HackingAttemps
-        domain: '...',       // Site IP for direct connecion
-        nameSite: 'http://.ru/',    // Shown when buying or winnig something
+        secretKey: '0QTQARQCQ42I23G81A1YK2O28G35SB',    // Provided to prevent HackingAttemps
+        domain: '91.235.129.250',       // Site IP for direct connecion
+        nameSite: 'http://csgf.ru/',    // Shown when buying or winnig something
     },
     steam:{
-        apiKey: '',
+        apiKey: '3271FFD21F6302D62F4CE63C387DBDCA',
     },
     ports:{
         appServerPort: 2082,    // io port for games
@@ -26,21 +26,21 @@ var config = {
     bots:{  // your bots data
         game_bots:{
             game_bot: {
-                steamid: '',
-                username: '',
-                password: '',
-                secret: '=',
-                identity_secret: '=',
+                steamid: '76561198067721846',
+                username: 'skyfis67rus ',
+                password: 'nWZPzoSqCQgu4GHFa7xO21J594nZgbRpvQwMImpPWHD0r',
+                secret: 'H8XA4CpNVRkCeExfaz1ZV5WyqK8=',
+                identity_secret: 'oj43OcFfoMLG8HRPt2jYbTbZpWk=',
                 timeForCancelOffer: 300
             }
         },
         shop_bots:{
             shop_bot_1: {
-                steamid: '',
-                username: '',
-                password: '',
-                secret: '=',
-                identity_secret: '=',
+                steamid: '76561198073063637',
+                username: 'skolya16',
+                password: 'skonik16',
+                secret: 'cyvp4RIJY6G9rlgJ+vO0XP0HmGE=',
+                identity_secret: 'kxuhUWH+COaJ8ewQYA5SD8E4loo=',
                 timeForCancelOffer: 1800
             }
         }
@@ -49,5 +49,4 @@ var config = {
         '76561198073063637', '76561198067721846'
     ]
 }
-
 module.exports = config;

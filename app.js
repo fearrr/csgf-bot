@@ -12,8 +12,8 @@ var auth = require('http-auth'),
 
 var users = [];
 
-var redisClient = redis.createClient(),
-    client = redis.createClient();
+var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
+    client = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
     
 const redisChannels = redis_conf.App_Channels;
 
@@ -124,7 +124,7 @@ redisClient.on("message", function (channel, message) {
 		setTimeout(function () {
             for(key in users){
                 if(users[key].steamid == mes.steamid){
-                    io.sockets.connected[key].emit('notification', message);
+                    if(io.sockets.connected[key]) io.sockets.connected[key].emit('notification', message);
                 }
             }
 		}, 10);

@@ -2,14 +2,15 @@ var auth = require('http-auth'),
     scribe = require('scribe-js')(),
     console = process.console,
     config = require('./config/config.js'),
+    redis_conf = require('./config/redis.js'),
     app = require('express')(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     redis = require('redis'),
     requestify = require('requestify');
 
-var redisClient = redis.createClient(),
-    client = redis.createClient();
+var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
+    client = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
 
 server.listen(config.ports.chatServerPort);
 

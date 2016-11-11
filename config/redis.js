@@ -2,6 +2,9 @@
 Redis Config file
 */
 var redis_conf = {
+    host: '127.0.0.1',
+    port: '6379',
+    password: '',
     App_Channels: {
         show_winners: 'show.winners',
         queue: 'queue',
@@ -34,9 +37,9 @@ var redis_conf = {
         itemsToCheck: 'items.to.check',
         itemsToGive: 'items.to.give',
         offersToCheck: 'offers.to.check',
+        declineList: 'shop.decline.list',
         updateShop: 'updateShop'
     }
 
 }
-
 module.exports = redis_conf;

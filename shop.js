@@ -24,8 +24,8 @@ server.listen(config.ports.shopServerPort);
 
 const redisChannels = redis_conf.Shop_Channels;
 
-var redisClient = redis.createClient(),
-    rediClient = redis.createClient();
+var redisClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password}),
+    rediClient = redis.createClient({'host':redis_conf.host,'port':redis_conf.port,'password':redis_conf.password});
     
 function query(sql, callback) {
 	if (typeof callback === 'undefined') {
@@ -337,7 +337,7 @@ app.get('/sendTrade/', function (req, res) {
 				accessToken: offer.accessToken,
 				itemsFromThem: senditems,
 				itemsFromMe: [],
-				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.nameSite
+				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web_api_data.nameSite
 			}, function(err, r) {
 				if(err) {
 					siteShopLogger('Ошибка при отправке трейда' + err.message);
@@ -632,6 +632,21 @@ var addCheckItems = function () {
 	});
 }
 
+var checkAllOffers = function () {
+    requestify.post('http://' + config.web_api_data.domain + '/api/shop/checkAllOffers', {
+        secretKey: config.web_api_data.secretKey
+    }).then(function (response) {
+		var answer = JSON.parse(response.body);
+		if (answer.success) {
+			siteShopLogger('Проверка завершена успешно!');
+		} else {
+			siteShopLogger(answer);
+		}
+	}, function (response) {
+		siteShopLogger('Something wrong with check. Retry...');
+	});
+}
+
 var checkOfferForExpired = function (offer) {
     offers.getOffer({tradeOfferId: offer}, function (err, body) {
         if (body.response.offer) {
@@ -672,6 +687,22 @@ var checkOfferForExpired = function (offer) {
     })
 }
 
+var declineOffersProcceed = function(offerid) {
+    siteShopLogger('Отклоняем обмен: #' + offerid);
+    offers.declineOffer({
+        tradeOfferId: offerid
+    }, function(err, body) {
+        if (!err) {
+            siteShopLogger('Обмен #' + offerid + ' Отклонен!');
+            redisClient.lrem(redisChannels.declineList, 0, offerid);
+            declineProcceed = false;
+        } else {
+            siteShopLogger('Ошибка. Не можем отклонить обмен #' + offerid).tag('Бот').log(err);
+            declineProcceed = false;
+        }
+    });
+}
+
 var queueProceed = function () {
     redisClient.llen(redisChannels.itemsToSale, function (err, length) {
         if (length > 0 && !itemsToSaleProcced) {
@@ -685,6 +716,15 @@ var queueProceed = function () {
             siteShopLogger('Ожидает проверки:' + length);
             itemsToCheckProcced = true;
             addCheckItems();
+        }
+    });
+    redisClient.llen(redisChannels.declineList, function(err, length) {
+        if (length > 0 && !declineProcceed && WebSession) {
+            siteShopLogger('Отмененных трейдов:' + length);
+            declineProcceed = true;
+            redisClient.lindex(redisChannels.declineList, 0, function(err, offer) {
+                declineOffersProcceed(offer);
+            });
         }
     });
     redisClient.llen(redisChannels.itemsToGive, function (err, length) {
@@ -710,7 +750,9 @@ var itemsToSaleProcced = false;
 var itemsToCheckProcced = false;
 var sendProcceed = false;
 var checkProcceed = false;
+var declineProcceed = false;
 setInterval(queueProceed, 5000);
+setInterval(checkAllOffers, 30000);
 setInterval(AcceptMobileOffer, 10000);
 setInterval(handleOffers, 30000);
 
