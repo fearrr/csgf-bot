@@ -23,8 +23,8 @@ var auth = require('http-auth'),
 app.listen(config.ports.depositPort);
 
 if(socket_conf.unix){
-    process.umask(0007);
-    process.setgid("w3csgf");
+    process.umask(socket_conf.procumask);
+    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.shop.path);
     server.listen(config.ports.shop.path);
     console.log('SHOP started on ' + config.ports.shop.path);

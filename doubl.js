@@ -28,8 +28,8 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-    process.umask(0007);
-    process.setgid("w3csgf");
+    process.umask(socket_conf.procumask);
+    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.double.path);
     server.listen(config.ports.double.path);
     console.log('DOUBLE started on ' + config.ports.double.path);

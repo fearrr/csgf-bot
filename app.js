@@ -33,8 +33,8 @@ var redisClient = redis.createClient(redis_config),
 const redisChannels = redis_conf.App_Channels;
 
 if(socket_conf.unix){
-    process.umask(0007);
-    process.setgid("w3csgf");
+    process.umask(socket_conf.procumask);
+    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.app.path);
     server.listen(config.ports.app.path);
     console.log('APP started on ' + config.ports.app.path);

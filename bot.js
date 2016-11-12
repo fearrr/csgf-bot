@@ -21,8 +21,8 @@ var auth = require('http-auth'),
     requestify = require('requestify');
 
 if(socket_conf.unix){
-    process.umask(0007);
-    process.setgid("w3csgf");
+    process.umask(socket_conf.procumask);
+    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.bot.path);
     server.listen(config.ports.bot.path);
     console.log('BOT started on ' + config.ports.bot.path);

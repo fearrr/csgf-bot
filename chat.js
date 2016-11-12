@@ -27,8 +27,8 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-    process.umask(0007);
-    process.setgid("w3csgf");
+    process.umask(socket_conf.procumask);
+    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.chat.path)
     server.listen(config.ports.chat.path);
     console.log('CHAT started on ' + socket_conf.path);
