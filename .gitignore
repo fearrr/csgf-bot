@@ -1,6 +1,4 @@
 .*
-!.gitignore
+.git
 ab*.js
-logs/
-node_modules/*
 servers
