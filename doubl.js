@@ -3,6 +3,7 @@ var auth = require('http-auth'),
     console = process.console,
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
+    socket_conf = require('./config/socket.js'),
     app = require('express')(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
@@ -25,7 +26,14 @@ if(redis_conf.unix){
 
 var redisClient = redis.createClient(redis_config);
 
-server.listen(config.ports.doubleServerPort);
+if(socket_conf.unix){
+    server.listen(config.ports.double.path);
+    console.log('DOUBLE started on ' + socket_conf.path);
+} else {
+    server.listen(config.ports.double.port, socket_conf.host);
+    console.log('DOUBLE started on ' + socket_conf.host + ':'  + config.ports.double.port);
+}
+
 
 setTimeout(rediSubscribe, 1000);
 function rediSubscribe() {

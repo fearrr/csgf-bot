@@ -3,6 +3,7 @@ var auth = require('http-auth'),
     console = process.console,
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
+    socket_conf = require('./config/socket.js'),
     app = require('express')(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
@@ -25,9 +26,14 @@ if(redis_conf.unix){
 
 var redisClient = redis.createClient(redis_config);
 
-server.listen(config.ports.chatServerPort);
+if(socket_conf.unix){
+    server.listen(config.ports.chat.path);
+    console.log('CHAT started on ' + socket_conf.path);
+} else {
+    server.listen(config.ports.chat.port, socket_conf.host);
+    console.log('CHAT started on ' + socket_conf.host + ':'  + config.ports.chat.port);
+}
 
-console.log('Chat started on ' + config.web_api_data.domain + ':' + config.ports.chatServerPort);
 
 redisClient.setMaxListeners(0);
 

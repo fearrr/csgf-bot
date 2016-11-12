@@ -8,6 +8,7 @@ var auth = require('http-auth'),
     crypto = require('crypto'),
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
+    socket_conf = require('./config/socket.js'),
     Steam = require('steam'),
     SteamWebLogOn = require('steam-weblogon'),
     getSteamAPIKey = require('steam-web-api-key'),
@@ -20,7 +21,13 @@ var auth = require('http-auth'),
     
 app.listen(config.ports.depositPort);
 
-server.listen(config.ports.shopServerPort);
+if(socket_conf.unix){
+    server.listen(config.ports.shop.path);
+    console.log('SHOP started on ' + socket_conf.path);
+} else {
+    server.listen(config.ports.shop.port, socket_conf.host);
+    console.log('SHOP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
+}
 
 const redisChannels = redis_conf.Shop_Channels;
 

@@ -8,54 +8,54 @@ var config = {
         price_update_timer: 10800   // Price update timer
     },
     web_api_data:{
-        secretKey: '0QTQARQCQ42I23G81A1YK2O28G35SB',    // Provided to prevent HackingAttemps
+        secretKey: '',    // Provided to prevent HackingAttemps
         domain: '91.235.129.250',       // Site IP for direct connecion
         nameSite: 'http://csgf.ru/',    // Shown when buying or winnig something
     },
     steam:{
-        apiKey: '3271FFD21F6302D62F4CE63C387DBDCA',
+        apiKey: '',
     },
     ports:{
         app:{
             port: 2082,
-            path: '/soket.io/app'
+            path: ''
         },
         double:{
             port: 2083,
-            path: '/soket.io/double'
+            path: ''
         },
         chat:{
             port: 2084,
-            path: '/soket.io/chat'
+            path: ''
         },
         shop:{
             port: 2085,
-            path: '/soket.io/shop'
+            path: ''
         },
         bot:{
             port: 2086,
-            path: '/soket.io/bot'
+            path: ''
         },
         depositPort: 9770       // local port for local requests
     },
     bots:{  // your bots data
         game_bots:{
             game_bot: {
-                steamid: '76561198067721846',
-                username: 'skyfis67rus ',
-                password: 'nWZPzoSqCQgu4GHFa7xO21J594nZgbRpvQwMImpPWHD0r',
-                secret: 'H8XA4CpNVRkCeExfaz1ZV5WyqK8=',
-                identity_secret: 'oj43OcFfoMLG8HRPt2jYbTbZpWk=',
+                steamid: '',
+                username: ' ',
+                password: '',
+                secret: '=',
+                identity_secret: '=',
                 timeForCancelOffer: 300
             }
         },
         shop_bots:{
             shop_bot_1: {
-                steamid: '76561198073063637',
-                username: 'skolya16',
-                password: 'skonik16',
-                secret: 'cyvp4RIJY6G9rlgJ+vO0XP0HmGE=',
-                identity_secret: 'kxuhUWH+COaJ8ewQYA5SD8E4loo=',
+                steamid: '',
+                username: '',
+                password: '',
+                secret: '+=',
+                identity_secret: '+=',
                 timeForCancelOffer: 1800
             }
         }

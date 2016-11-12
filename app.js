@@ -33,10 +33,10 @@ const redisChannels = redis_conf.App_Channels;
 
 if(socket_conf.unix){
     server.listen(config.ports.app.path);
-    console.log('Server started on ' + socket_conf.path);
+    console.log('APP started on ' + socket_conf.path);
 } else {
     server.listen(config.ports.app.port, socket_conf.host);
-    console.log('Server started on ' + socket_conf.host + ':'  + config.ports.app.port);
+    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
 }
 
 redisClient.subscribe(redisChannels.show_winners);

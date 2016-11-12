@@ -8,6 +8,7 @@ var auth = require('http-auth'),
     crypto = require('crypto'),
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
+    socket_conf = require('./config/socket.js'),
     Steam = require('steam'),
     SteamWebLogOn = require('steam-weblogon'),
     getSteamAPIKey = require('steam-web-api-key'),
@@ -18,7 +19,13 @@ var auth = require('http-auth'),
     redis = require('redis'),
     requestify = require('requestify');
 
-server.listen(config.ports.botServerPort);
+if(socket_conf.unix){
+    server.listen(config.ports.bot.path);
+    console.log('BOT started on ' + socket_conf.path);
+} else {
+    server.listen(config.ports.bot.port, socket_conf.host);
+    console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);
+}
 
 if(redis_conf.unix){
     var redis_config = {
