@@ -8,7 +8,8 @@ var auth = require('http-auth'),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     redis = require('redis'),
-	mysql = require('mysql'),
+	  mysql = require('mysql'),
+    fs = require('fs'),
     requestify = require('requestify');
 
 if(redis_conf.unix){
@@ -27,8 +28,11 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
+    process.umask(0007);
+    process.setgid("w3csgf");
+    fs.unlinkSync(config.ports.double.path);
     server.listen(config.ports.double.path);
-    console.log('DOUBLE started on ' + socket_conf.path);
+    console.log('DOUBLE started on ' + config.ports.double.path);
 } else {
     server.listen(config.ports.double.port, socket_conf.host);
     console.log('DOUBLE started on ' + socket_conf.host + ':'  + config.ports.double.port);

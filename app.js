@@ -9,7 +9,8 @@ var auth = require('http-auth'),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     redis = require('redis'),
-	mysql = require('mysql'),
+    fs = require('fs'),
+    mysql = require('mysql'),
     requestify = require('requestify');
 
 var users = [];
@@ -32,8 +33,11 @@ var redisClient = redis.createClient(redis_config),
 const redisChannels = redis_conf.App_Channels;
 
 if(socket_conf.unix){
+    process.umask(0007);
+    process.setgid("w3csgf");
+    fs.unlinkSync(config.ports.app.path);
     server.listen(config.ports.app.path);
-    console.log('APP started on ' + socket_conf.path);
+    console.log('APP started on ' + config.ports.app.path);
 } else {
     server.listen(config.ports.app.port, socket_conf.host);
     console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
@@ -96,7 +100,6 @@ redisClient.on("message", function (channel, message) {
                     io.sockets.emit('online_add', user);
                     users[id] = {
                         user: user,
-                        ip: adress,
                         steamid: id
                     }
                 }
@@ -163,8 +166,6 @@ function updateInformation() {
 /* USERS ONLINE SITE */
 io.sockets.on('connection', function(socket) {
 	var user = false;
-	adress = socket.request.connection.remoteAddress;
-	adress = adress.replace(/[^.0-9]/gim,'');
 	socket.on('steamid64', function(id) {
 		if (id != default_conf.bonus_id){
             requestify.post('http://' + config.web_api_data.domain + '/api/userinfo', {
@@ -175,7 +176,6 @@ io.sockets.on('connection', function(socket) {
                 if(user.steamid64 != default_conf.bonus_id){
                     users[socket.id] = {
                         user: user,
-                        ip: adress,
                         steamid: id
                     }
                     io.sockets.emit('online_add', user);

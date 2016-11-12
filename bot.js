@@ -17,11 +17,15 @@ var auth = require('http-auth'),
     SteamcommunityMobileConfirmations = require('steamcommunity-mobile-confirmations'),
     SteamTotp = require('steam-totp'),
     redis = require('redis'),
+    fs = require('fs'),
     requestify = require('requestify');
 
 if(socket_conf.unix){
+    process.umask(0007);
+    process.setgid("w3csgf");
+    fs.unlinkSync(config.ports.bot.path);
     server.listen(config.ports.bot.path);
-    console.log('BOT started on ' + socket_conf.path);
+    console.log('BOT started on ' + config.ports.bot.path);
 } else {
     server.listen(config.ports.bot.port, socket_conf.host);
     console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);

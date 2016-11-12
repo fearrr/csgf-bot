@@ -17,13 +17,17 @@ var auth = require('http-auth'),
     SteamcommunityMobileConfirmations = require('steamcommunity-mobile-confirmations'),
     SteamTotp = require('steam-totp'),
     redis = require('redis'),
+    fs = require('fs'),
     requestify = require('requestify');
     
 app.listen(config.ports.depositPort);
 
 if(socket_conf.unix){
+    process.umask(0007);
+    process.setgid("w3csgf");
+    fs.unlinkSync(config.ports.shop.path);
     server.listen(config.ports.shop.path);
-    console.log('SHOP started on ' + socket_conf.path);
+    console.log('SHOP started on ' + config.ports.shop.path);
 } else {
     server.listen(config.ports.shop.port, socket_conf.host);
     console.log('SHOP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
