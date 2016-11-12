@@ -9,18 +9,33 @@ var config = {
     },
     web_api_data:{
         secretKey: '',    // Provided to prevent HackingAttemps
-        domain: '',       // Site IP for direct connecion
-        nameSite: '',    // Shown when buying or winnig something
+        domain: '91.235.129.250',       // Site IP for direct connecion
+        nameSite: 'http://csgf.ru/',    // Shown when buying or winnig something
     },
     steam:{
         apiKey: '',
     },
     ports:{
-        appServerPort: 2082,    // io port for games
-        doubleServerPort: 2083, // io port for double
-        chatServerPort: 2084,   // io port for chat
-        shopServerPort: 2085,   // io port for shop
-        botServerPort: 2086,    // io port for bot
+        app:{
+            port: 2082,
+            path: ''
+        },
+        double:{
+            port: 2083,
+            path: ''
+        },
+        chat:{
+            port: 2084,
+            path: ''
+        },
+        shop:{
+            port: 2085,
+            path: ''
+        },
+        bot:{
+            port: 2086,
+            path: ''
+        },
         depositPort: 9770       // local port for local requests
     },
     bots:{  // your bots data
@@ -29,8 +44,8 @@ var config = {
                 steamid: '',
                 username: ' ',
                 password: '',
-                secret: '',
-                identity_secret: '',
+                secret: '=',
+                identity_secret: '=',
                 timeForCancelOffer: 300
             }
         },
@@ -39,12 +54,14 @@ var config = {
                 steamid: '',
                 username: '',
                 password: '',
-                secret: '',
-                identity_secret: '',
+                secret: '+=',
+                identity_secret: '+=',
                 timeForCancelOffer: 1800
             }
         }
     },
-    admins: []
+    admins: [
+        '76561198073063637', '76561198067721846'
+    ]
 }
 module.exports = config;

@@ -2,8 +2,8 @@
 Redis Config file
 */
 var redis_conf = {
-    host: '',
-    port: '',
+    host: '127.0.0.1',
+    port: '6379',
     password: '',
     path: '',
     unix: false,

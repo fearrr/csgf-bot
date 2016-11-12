@@ -4,6 +4,7 @@ var auth = require('http-auth'),
     config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
     default_conf = require('./config/default.js'),
+    socket_conf = require('./config/socket.js'),
     app = require('express')(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
@@ -30,9 +31,13 @@ var redisClient = redis.createClient(redis_config),
     
 const redisChannels = redis_conf.App_Channels;
 
-server.listen(config.ports.appServerPort);
-
-console.log('Server started on ' + config.web_api_data.domain + ':' + config.ports.appServerPort);
+if(socket_conf.unix){
+    server.listen(config.ports.app.path);
+    console.log('Server started on ' + socket_conf.path);
+} else {
+    server.listen(config.ports.app.port, socket_conf.host);
+    console.log('Server started on ' + socket_conf.host + ':'  + config.ports.app.port);
+}
 
 redisClient.subscribe(redisChannels.show_winners);
 redisClient.subscribe(redisChannels.queue);

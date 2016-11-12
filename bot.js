@@ -64,11 +64,12 @@ const redisChannels = redis_conf.Bot_Channels;
 function steamBotLogger(log) {
     if(typeof(log) == "string"||typeof(log) == "number"||typeof(log) == "boolean"||typeof(log) == "object") console.tag('Бот').log(log);
 }
+var errCount = 0;
 function makeErr() {
     errCount++;
 	if (errCount > 3){
 		errCount = 0;
-		reWebLogonShop();
+		reWebLogonBot();
 	}
 }
 
