@@ -24,7 +24,6 @@ app.listen(config.ports.depositPort);
 
 if(socket_conf.unix){
     process.umask(socket_conf.procumask);
-    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.shop.path);
     server.listen(config.ports.shop.path);
     console.log('SHOP started on ' + config.ports.shop.path);

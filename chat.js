@@ -8,6 +8,7 @@ var auth = require('http-auth'),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     redis = require('redis'),
+    fs = require('fs'),
     requestify = require('requestify');
 
     
@@ -28,7 +29,6 @@ var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
     process.umask(socket_conf.procumask);
-    process.setgid(socket_conf.procgid);
     fs.unlinkSync(config.ports.chat.path)
     server.listen(config.ports.chat.path);
     console.log('CHAT started on ' + socket_conf.path);
