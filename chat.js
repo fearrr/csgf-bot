@@ -28,15 +28,14 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-    process.umask(socket_conf.procumask);
-    fs.unlinkSync(config.ports.chat.path)
-    server.listen(config.ports.chat.path);
-    console.log('CHAT started on ' + socket_conf.path);
+  if ( fs.existsSync(config.ports.chat.path) ) { fs.unlinkSync(config.ports.chat.path); }
+  process.umask(socket_conf.procumask);
+  server.listen(config.ports.chat.path);
+  console.log('APP started on ' + config.ports.chat.path);
 } else {
-    server.listen(config.ports.chat.port, socket_conf.host);
-    console.log('CHAT started on ' + socket_conf.host + ':'  + config.ports.chat.port);
+  server.listen(config.ports.chat.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.chat.port);
 }
-
 
 redisClient.setMaxListeners(0);
 

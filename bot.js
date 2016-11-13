@@ -21,13 +21,13 @@ var auth = require('http-auth'),
     requestify = require('requestify');
 
 if(socket_conf.unix){
-    process.umask(socket_conf.procumask);
-    fs.unlinkSync(config.ports.bot.path);
-    server.listen(config.ports.bot.path);
-    console.log('BOT started on ' + config.ports.bot.path);
+  if ( fs.existsSync(config.ports.bot.path) ) { fs.unlinkSync(config.ports.bot.path); }
+  process.umask(socket_conf.procumask);
+  server.listen(config.ports.bot.path);
+  console.log('APP started on ' + config.ports.bot.path);
 } else {
-    server.listen(config.ports.bot.port, socket_conf.host);
-    console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);
+  server.listen(config.ports.bot.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.bot.port);
 }
 
 if(redis_conf.unix){

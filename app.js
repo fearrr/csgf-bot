@@ -33,13 +33,13 @@ var redisClient = redis.createClient(redis_config),
 const redisChannels = redis_conf.App_Channels;
 
 if(socket_conf.unix){
-    process.umask(socket_conf.procumask);
-    fs.unlinkSync(config.ports.app.path);
-    server.listen(config.ports.app.path);
-    console.log('APP started on ' + config.ports.app.path);
+  if ( fs.existsSync(config.ports.app.path) ) { fs.unlinkSync(config.ports.app.path); }
+  process.umask(socket_conf.procumask);
+  server.listen(config.ports.app.path);
+  console.log('APP started on ' + config.ports.app.path);
 } else {
-    server.listen(config.ports.app.port, socket_conf.host);
-    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
+  server.listen(config.ports.app.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
 }
 
 redisClient.subscribe(redisChannels.show_winners);

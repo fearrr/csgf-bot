@@ -28,15 +28,14 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-    process.umask(socket_conf.procumask);
-    fs.unlinkSync(config.ports.double.path);
-    server.listen(config.ports.double.path);
-    console.log('DOUBLE started on ' + config.ports.double.path);
+  if ( fs.existsSync(config.ports.double.path) ) { fs.unlinkSync(config.ports.double.path); }
+  process.umask(socket_conf.procumask);
+  server.listen(config.ports.double.path);
+  console.log('APP started on ' + config.ports.double.path);
 } else {
-    server.listen(config.ports.double.port, socket_conf.host);
-    console.log('DOUBLE started on ' + socket_conf.host + ':'  + config.ports.double.port);
+  server.listen(config.ports.double.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.double.port);
 }
-
 
 setTimeout(rediSubscribe, 1000);
 function rediSubscribe() {

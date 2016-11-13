@@ -23,13 +23,13 @@ var auth = require('http-auth'),
 app.listen(config.ports.depositPort);
 
 if(socket_conf.unix){
-    process.umask(socket_conf.procumask);
-    fs.unlinkSync(config.ports.shop.path);
-    server.listen(config.ports.shop.path);
-    console.log('SHOP started on ' + config.ports.shop.path);
+  if ( fs.existsSync(config.ports.shop.path) ) { fs.unlinkSync(config.ports.shop.path); }
+  process.umask(socket_conf.procumask);
+  server.listen(config.ports.shop.path);
+  console.log('APP started on ' + config.ports.shop.path);
 } else {
-    server.listen(config.ports.shop.port, socket_conf.host);
-    console.log('SHOP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
+  server.listen(config.ports.shop.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
 }
 
 const redisChannels = redis_conf.Shop_Channels;
