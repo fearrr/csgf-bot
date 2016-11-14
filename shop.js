@@ -20,8 +20,16 @@ var auth = require('http-auth'),
     fs = require('fs'),
     requestify = require('requestify');
     
-app.listen(config.ports.depositPort);
 
+if(socket_conf.unix){
+  if ( fs.existsSync(config.ports.deposit.path) ) { fs.unlinkSync(config.ports.deposit.path); }
+  process.umask(socket_conf.procumask);
+  app.listen(config.ports.deposit.path);
+  console.log('APP started on ' + config.ports.deposit.path);
+} else {
+  server.listen(config.ports.deposit.port, socket_conf.host);
+  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.deposit.port);
+}
 if(socket_conf.unix){
   if ( fs.existsSync(config.ports.shop.path) ) { fs.unlinkSync(config.ports.shop.path); }
   process.umask(socket_conf.procumask);

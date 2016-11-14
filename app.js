@@ -323,7 +323,7 @@ function setGameStatus(status) {
 		console.tag('Игра').log('Статус игры изменен: ' + status);
 	}, function (response) {
 		console.tag('Игра').error('Something wrong [setGameStatus]');
-		setTimeout(setGameStatus, 1000);
+		setTimeout(function(){setGameStatus(status)}, 1000);
 	});
 }
 

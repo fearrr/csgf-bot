@@ -4,6 +4,8 @@ var auth = require('http-auth'),
     config = require('./config/config.js'),
     requestify = require('requestify');
 
+getOutNames();
+getPriceItems();
 setInterval(getOutNames, 1000 * config.timers.give_out_timer);
 setInterval(getPriceItems, 1000 * config.timers.price_update_timer);
 
