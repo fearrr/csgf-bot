@@ -26,7 +26,7 @@ if(redis_conf.unix){
         'password': redis_conf.password
     }
 }
-
+//
 var redisClient = redis.createClient(redis_config),
     client = redis.createClient(redis_config);
     
