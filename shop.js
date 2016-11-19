@@ -22,22 +22,22 @@ var auth = require('http-auth'),
     
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.deposit.path) ) { fs.unlinkSync(config.ports.deposit.path); }
-  process.umask(socket_conf.procumask);
-  app.listen(config.ports.deposit.path);
-  console.log('APP started on ' + config.ports.deposit.path);
+    if ( fs.existsSync(config.ports.deposit.path) ) { fs.unlinkSync(config.ports.deposit.path); }
+    process.umask(socket_conf.procumask);
+    app.listen(config.ports.deposit.path);
+    console.log('APP started on ' + config.ports.deposit.path);
 } else {
-  server.listen(config.ports.deposit.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.deposit.port);
+    server.listen(config.ports.deposit.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.deposit.port);
 }
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.shop.path) ) { fs.unlinkSync(config.ports.shop.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.shop.path);
-  console.log('APP started on ' + config.ports.shop.path);
+    if ( fs.existsSync(config.ports.shop.path) ) { fs.unlinkSync(config.ports.shop.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(config.ports.shop.path);
+    console.log('APP started on ' + config.ports.shop.path);
 } else {
-  server.listen(config.ports.shop.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
+    server.listen(config.ports.shop.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
 }
 
 const redisChannels = redis_conf.Shop_Channels;
@@ -122,14 +122,14 @@ function makeErr() {
 
 function generatekey(secret) {
     code = SteamTotp.generateAuthCode(secret);
-	siteShopLogger('Код Авторизации : ' + code);
+	ShopLogger('Код Авторизации : ' + code);
     return code;
 }
-function siteShopLogger(log) {
+function ShopLogger(log) {
     console.tag('Магазин').log(log);
 }
 function disconnected(){
-    siteShopLogger('Отключен от стима');
+    ShopLogger('Отключен от стима');
     WebSession = false;
 	setTimeout(function(){
 		steamClient = new Steam.SteamClient();
@@ -141,7 +141,7 @@ function disconnected(){
 	}, 60000);
 }
 steamClient.connect();
-steamClient.on('debug', siteShopLogger);
+steamClient.on('debug', ShopLogger);
 steamClient.on('error', disconnected);
 steamClient.on('connected', function () {
     steamUser.logOn(details);
@@ -170,7 +170,7 @@ steamFriends.on('friendMsg', function(steamID, message, type) {
 
 steamClient.on('logOnResponse', function (logonResp) {
     if (logonResp.eresult === Steam.EResult.OK) {
-		siteShopLogger('Вход выполнен!');
+		ShopLogger('Вход выполнен!');
         steamFriends.setPersonaState(Steam.EPersonaState.Online);
 
         steamWebLogOn.webLogOn(function (sessionID, newCookie) {
@@ -186,7 +186,7 @@ steamClient.on('logOnResponse', function (logonResp) {
                     WebSession = true;
                     globalSession = sessionID;
                     WebCookies = newCookie;
-                    siteShopLogger('Обмены доступны!');
+                    ShopLogger('Обмены доступны!');
 					handleOffers();
 					setTimeout(AcceptMobileOffer, 5000);
 					//reWebLogonShop();
@@ -221,7 +221,7 @@ function reWebLogonShop() {
                 WebSession = true;
                 globalSession = sessionID;
                 WebCookies = newCookie;
-                siteShopLogger('Сессия перезагружена !');
+                ShopLogger('Сессия перезагружена !');
             });
         });
     });
@@ -236,7 +236,7 @@ function handleOffers() {
             body.response.trade_offers_received.forEach(function (offer) {
                 if (offer.trade_offer_state == 2) {
                     if ((config.admins.indexOf(offer.steamid_other) != -1) || (offer.items_to_give == null && offer.items_to_receive != null)) {
-						siteShopLogger('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other );
+						ShopLogger('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other );
 						var mes = {steamid : offer.steamid_other,message : 'Ваш обмен принимается'}
 						io.sockets.emit('notification', JSON.stringify(mes));
 						offers.getTradeHoldDuration({
@@ -245,16 +245,16 @@ function handleOffers() {
 							if(offer.steamid_other != config.bots.game_bots.game_bot.steamid){
 								if (err) {
 									makeErr();
-									siteShopLogger('Ошибка проврки на задержку: ' + offer.tradeofferid);
+									ShopLogger('Ошибка проврки на задержку: ' + offer.tradeofferid);
 									var mes = {steamid : offer.steamid_other,message : 'Трейд отменен из за ошибки'}
 									io.sockets.emit('notification', JSON.stringify(mes));
 									return;
 								} else if (response.their != 0) {
-									siteShopLogger('response.their: ' + response.their);
+									ShopLogger('response.their: ' + response.their);
 									offers.declineOffer({
 										tradeOfferId: offer.tradeofferid
 									});
-									siteShopLogger('Трейд отменен из за задержки: ' + offer.tradeofferid);
+									ShopLogger('Трейд отменен из за задержки: ' + offer.tradeofferid);
 									var mes = {steamid : offer.steamid_other,message : 'Обмен отклонен из за задержки'}
 									io.sockets.emit('notification', JSON.stringify(mes));
 									return;
@@ -269,7 +269,7 @@ function handleOffers() {
 							if(error){
 								var mes = {steamid : offer.steamid_other,message : 'Ошибка: ' + error.message}
 								io.sockets.emit('notification', JSON.stringify(mes));
-								siteShopLogger('Ошибка принятия: ' + error.message + ' #' + offer.tradeofferid);
+								ShopLogger('Ошибка принятия: ' + error.message + ' #' + offer.tradeofferid);
 								makeErr();
 								getErrorCode(error.message, function (errCode) {
 									ECode = errCode;
@@ -340,18 +340,18 @@ function handleOffers() {
 
 
 steamUser.on('tradeOffers', function (number) {
-    siteShopLogger('Предложений обмена: ' + number);
+    ShopLogger('Предложений обмена: ' + number);
     if (number > 0) {
         handleOffers();
     }
 });
 
-app.get('/sendTrade/', function (req, res) {
-	if (req.query['SHOP_SECRET'] == config.web_api_data.secretKey && !sendProcceed && WebSession){
+app.get('/socket.io//sendTrade/', function (req, res) {
+	if (req.query['secretKey'] == config.web_api_data.secretKey && !sendProcceed && WebSession){
 		if(req.query['data']){
 			var offer = JSON.parse(req.query['data']);
 			var assetids = offer.items;
-			siteShopLogger('Отправляем обмен для депозта: ' + offer.steamid);
+			ShopLogger('Отправляем обмен для депозта: ' + offer.steamid);
 			var senditems = [];
 			for(var i = 0; i < assetids.length; i++) {
 				if(assetids[i] == "") continue;
@@ -371,7 +371,7 @@ app.get('/sendTrade/', function (req, res) {
 				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web_api_data.nameSite
 			}, function(err, r) {
 				if(err) {
-					siteShopLogger('Ошибка при отправке трейда' + err.message);
+					ShopLogger('Ошибка при отправке трейда' + err.message);
 					sendProcceed = false;
 					res.json({
 						success: false,
@@ -402,281 +402,60 @@ app.get('/sendTrade/', function (req, res) {
 
 var sendTradeOffer = function(offerJson) {
 	var offer = JSON.parse(offerJson);
-	siteShopLogger('Отправляем обмен: ' + offer.steamid);
+	ShopLogger('Отправляем обмен: ' + offer.steamid);
 	try {
-		offers.loadMyInventory({
-			appId: 730,
-			contextId: 2
-		}, function(err, items) {
-			if (err) {
-				siteShopLogger(err);
-				makeErr();
-				sendProcceed = false;
-				return;
-			}
-			var itemsFromMe = [],
-				itemsFromMeObj = [],
-				nfitems = [],
-				checkArr = [],
-				num = 0;
-			var i = 0;
+		offers.loadMyInventory({ appId: 730, contextId: 2 }, function(err, items) {
+			if (err) { ShopLogger(err); makeErr(); sendProcceed = false; return; }
+			var itemsFromMe = [], itemsFromMeObj = [], nfitems = [], checkArr = [], num = 0, i = 0;
 			for (var i = 0; i < offer.items.length; i++) {
 				for (var j = 0; j < items.length; j++) {
 					if (items[j].tradable && (items[j].id == offer.items[i])) {
 						if (checkArr.indexOf(items[j].id) == -1) {
 							checkArr[i] = items[j].id;
-							itemsFromMe[num] = {
-								appid: 730,
-								contextid: 2,
-								amount: items[j].amount,
-								assetid: items[j].id,
-							};
-							itemsFromMeObj[num] = offer.items[i];
-							num++;
-							break;
+							itemsFromMe[num] = { appid: 730, contextid: 2,amount: items[j].amount, assetid: items[j].id };
+							itemsFromMeObj[num] = offer.items[i]; num++; break;
 						}
 					}
 				}
 			}
 			if (num > 0) {
-				offers.makeOffer({
-					partnerSteamId: offer.steamid,
-					accessToken: offer.accessToken,
-					itemsFromMe: itemsFromMe,
-					itemsFromThem: [],
-					message: 'Спасибо за покупку на сайте ' + config.web_api_data.nameSite
+				offers.makeOffer({ partnerSteamId: offer.steamid, accessToken: offer.accessToken, itemsFromMe: itemsFromMe, itemsFromThem: [], message: 'Спасибо за покупку на сайте ' + config.web_api_data.nameSite
 				}, function(err, response) {
                     if (err) {
 						makeErr();
                         getErrorCode(err.message, function (errCode) {
                             if (errCode == 15 || errCode == 25 || err.message.indexOf('an error sending your trade offer.  Please try again later.')) {
-                                redisClient.lrem(redisChannels.itemsToGive, 0, offerJson, function (err, data) {
-                                    sendProcceed = false;
-                                });
-                                sendProcceed = false;
+                                redisClient.lrem(redisChannels.itemsToGive, 0, offerJson); sendProcceed = false;
                             }
-							for (var i = 0; i < offer.items.length; i++) {
-								setItemStatus(offer.items[i], 4);
-							}
-                            sendProcceed = false;
+							for (var i = 0; i < offer.items.length; i++) setItemStatus(offer.items[i], 4); sendProcceed = false;
                         });
                         sendProcceed = false;
 						//reWebLogonShop();
                     } else if (response) {
                         redisClient.lrem(redisChannels.itemsToGive, 0, offerJson, function (err, data) {
 							var mes = {steamid : offer.steamid,message : 'Обмен отправлен'}
-							io.sockets.emit('notification', JSON.stringify(mes));
-                            sendProcceed = false;
-							num = 0;
-							for (var i = 0; i < offer.items.length; i++) {
-								if (itemsFromMeObj.indexOf(offer.items[i]) == -1) {
-									nfitems[num] = offer.items[i];
-									num++;
-								}
-							}
-							for (var i = 0; i < nfitems.length; i++) {
-								setItemStatus(nfitems[i], 2);
-							}
-							for (var i = 0; i < itemsFromMeObj.length; i++) {
-								setItemStatus(itemsFromMeObj[i], 3);
-							}
-                            siteShopLogger('Трейд #' + response.tradeofferid + ' Отправлен!');
+							io.sockets.emit('notification', JSON.stringify(mes)); sendProcceed = false; num = 0;
+							for (var i = 0; i < offer.items.length; i++) { if (itemsFromMeObj.indexOf(offer.items[i]) == -1) { nfitems[num] = offer.items[i]; num++; } }
+							for (var i = 0; i < nfitems.length; i++) { setItemStatus(nfitems[i], 2); }
+							for (var i = 0; i < itemsFromMeObj.length; i++) { setItemStatus(itemsFromMeObj[i], 3); }
+                            ShopLogger('Трейд #' + response.tradeofferid + ' Отправлен!');
                             redisClient.rpush(redisChannels.offersToCheck, response.tradeofferid);
                         });
                     }
 				});
 			} else {
-                siteShopLogger('Предметы не найдены!');
-				for (var i = 0; i < offer.items.length; i++) {
-					setItemStatus(offer.items[i], 2);
-				}
-                redisClient.lrem(redisChannels.itemsToGive, 0, offerJson, function (err, data) {
-                    sendProcceed = false;
-                });
+                ShopLogger('Предметы не найдены!');
+				for (var i = 0; i < offer.items.length; i++) { setItemStatus(offer.items[i], 2); }
+                redisClient.lrem(redisChannels.itemsToGive, 0, offerJson, function (err, data) { sendProcceed = false; });
 			}
 		});
 		setTimeout(AcceptMobileOffer, 5000);
 	} catch (ex) {
-        siteShopLogger('Ошибка отправки предмета');
+        ShopLogger('Ошибка отправки предмета');
         sendProcceed = false;
 		//reWebLogonShop();
 	}
 };
-
-var MyInvToSite = function() {
-	siteShopLogger('Обновляем инвентарь и список предметов на сайте');
-	if (WebSession){
-		try {
-			sentItems = [];
-			offers.getOffers({
-				get_sent_offers: 1,
-				active_only : 1
-			}, function(error, body) {
-				if (body && body.response && body.response.trade_offers_sent) {
-					body.response.trade_offers_sent.forEach(function(offer) {
-						if (offer.trade_offer_state == 2 || offer.trade_offer_state == 9) {
-							if (offer.items_to_give != null) {
-								var items = offer.items_to_give;
-								for (var i = 0; i < items.length; i++) {
-									sentItems.push(items[i].assetid);
-								}
-							}
-						}
-					});
-				}
-			});
-			var itemsForCheck = [], i = 0;
-			offers.loadMyInventory({
-				appId: 730,
-				contextId: 2,
-				language: 'russian'
-			}, function (error, botItems) {
-				if (!error) {
-					i = 0;
-					botItems.forEach(function (item) {
-						if ((sentItems.indexOf(item.id) == -1) && item.tradable) {
-							var rarity = '', type = '';
-							var arr = item.type.split(',');
-							if (arr.length == 2) rarity = arr[1].trim();
-							if (arr.length == 3) rarity = arr[2].trim();
-							if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
-							if (arr.length) type = arr[0];
-							var quality = item.market_name.match(/\(([^()]*)\)/);
-							if (quality != null && quality.length == 2) quality = quality[1];
-							itemsForCheck[i++] = {
-								inventoryId: item.id,
-								classid: item.classid,
-								name: item.name,
-								market_hash_name: item.market_hash_name,
-								rarity: rarity,
-								quality: quality,
-								type: type
-							}
-						}
-					});
-				}
-				redisClient.rpush(redisChannels.itemsToCheck, JSON.stringify(itemsForCheck));
-				return;
-			});
-		} catch (ex) {
-			siteShopLogger('Ошибка:' + ex);
-		}
-	} else {
-		setTimeout(MyInvToSite,1000);
-	}
-};
-
-function AcceptMobileOffer() {
-	if(WebSession){
-		// Информация для мобильных подтверждений
-		var steamcommunityMobileConfirmations = new SteamcommunityMobileConfirmations({
-			steamid: config.bots.shop_bots.shop_bot_1.steamid,
-			identity_secret: config.bots.shop_bots.shop_bot_1.identity_secret,
-			device_id: device_id,
-			webCookie: WebCookies,
-		});
-
-		steamcommunityMobileConfirmations.FetchConfirmations((function (err, confirmations) {
-			if (err) {
-				//reWebLogonShop();
-				return;
-			}
-			if (!confirmations.length) {
-				return;
-			} else {
-				siteShopLogger('Ожидает подтверждения: ' + confirmations.length);
-				steamcommunityMobileConfirmations.AcceptConfirmation(confirmations[0], (function (err, result) {
-					if (err) {
-						//siteShopLogger(err);
-						//reWebLogonShop();
-						return;
-					}
-				}).bind(this));
-			}
-		}).bind(this));
-	}
-}
-
-var setItemStatus = function (item, status) {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/setItemStatus', {
-        secretKey: config.web_api_data.secretKey,
-        id: item,
-        status: status
-    }).then(function (response) {}, function (response) {
-		siteShopLogger('Something wrong with setItemStatus. Retry...');
-		setTimeout(function () {
-			setItemStatus()
-		}, 1000);
-	});
-}
-var setTradeStatus = function (id, items, tradeid, status) {
-	var value = {
-		id : id,
-		tradeid : tradeid,
-		status : status,
-		items : items
-	};
-	redisClient.rpush(redisChannels.itemsCheckToTakeCheck, JSON.stringify(value));
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/setTradeStatus', {
-        secretKey: config.web_api_data.secretKey
-    }).then(function (response) {}, function (response) {
-		siteShopLogger('Something wrong with setTradeStatus. Retry...');
-		setTimeout(function () {
-			setTradeStatus()
-		}, 1000);
-	});
-}
-
-var addNewItems = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/newItems', {
-        secretKey: config.web_api_data.secretKey
-    }).then(function (response) {
-		var answer = JSON.parse(response.body);
-		if (answer.success) {
-			siteShopLogger('Предметы добавлены на сайт !');
-			itemsToSaleProcced = false;
-		} else {
-			siteShopLogger(answer);
-		}
-	}, function (response) {
-		siteShopLogger('Something wrong with newItems. Retry...');
-		setTimeout(function () {
-			addNewItems()
-		}, 1000);
-	});
-}
-
-var addCheckItems = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/checkShop', {
-        secretKey: config.web_api_data.secretKey
-    }).then(function (response) {
-		var answer = JSON.parse(response.body);
-		if (answer.success) {
-			siteShopLogger('Проверка завершена успешно!');
-			itemsToCheckProcced = false;
-		}
-		else {
-			siteShopLogger(answer);
-		}
-	}, function (response) {
-		siteShopLogger('Something wrong with check. Retry...');
-	});
-}
-
-var checkAllOffers = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/checkAllOffers', {
-        secretKey: config.web_api_data.secretKey
-    }).then(function (response) {
-		var answer = JSON.parse(response.body);
-		if (answer.success) {
-			siteShopLogger('Проверка завершена успешно!');
-		} else {
-			siteShopLogger(answer);
-		}
-	}, function (response) {
-		siteShopLogger('Something wrong with check. Retry...');
-	});
-}
 
 var checkOfferForExpired = function (offer) {
     offers.getOffer({tradeOfferId: offer}, function (err, body) {
@@ -688,7 +467,7 @@ var checkOfferForExpired = function (offer) {
                     offers.cancelOffer({tradeOfferId: offer}, function (err, response) {
                         if (!err) {
                             redisClient.lrem(redisChannels.offersToCheck, 0, offer, function (err, data) {
-                                siteShopLogger('Offer #' + offer + ' был просрочен!');
+                                ShopLogger('Offer #' + offer + ' был просрочен!');
                                 checkProcceed = false;
                             });
                         } else {
@@ -719,39 +498,236 @@ var checkOfferForExpired = function (offer) {
 }
 
 var declineOffersProcceed = function(offerid) {
-    siteShopLogger('Отклоняем обмен: #' + offerid);
+    ShopLogger('Отклоняем обмен: #' + offerid);
     offers.declineOffer({
         tradeOfferId: offerid
     }, function(err, body) {
         if (!err) {
-            siteShopLogger('Обмен #' + offerid + ' Отклонен!');
+            ShopLogger('Обмен #' + offerid + ' Отклонен!');
             redisClient.lrem(redisChannels.declineList, 0, offerid);
             declineProcceed = false;
         } else {
-            siteShopLogger('Ошибка. Не можем отклонить обмен #' + offerid).tag('Бот').log(err);
+            ShopLogger('Ошибка. Не можем отклонить обмен #' + offerid).tag('Бот').log(err);
             declineProcceed = false;
         }
     });
 }
 
+var MyInvToSite = function() {
+	ShopLogger('Обновляем инвентарь и список предметов на сайте');
+	if (WebSession){
+		try { sentItems = [];
+			offers.getOffers({ get_sent_offers: 1, active_only : 1 }, function(error, body) {
+				if (body && body.response && body.response.trade_offers_sent) {
+					body.response.trade_offers_sent.forEach(function(offer) {
+						if ((offer.trade_offer_state == 2 || offer.trade_offer_state == 9) && offer.items_to_give != null){ var items = offer.items_to_give; for (var i = 0; i < items.length; i++) sentItems.push(items[i].assetid);}
+					});
+				}
+			});
+			var itemsForCheck = [], i = 0;
+			offers.loadMyInventory({ appId: 730, contextId: 2, language: 'russian' }, function (error, botItems) {
+				if (!error) {
+					botItems.forEach(function (item) {
+						if ((sentItems.indexOf(item.id) == -1) && item.tradable) {
+							var rarity = '', type = '';
+							var arr = item.type.split(',');
+							if (arr.length == 2) rarity = arr[1].trim();
+							if (arr.length == 3) rarity = arr[2].trim();
+							if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
+							if (arr.length) type = arr[0];
+							var quality = item.market_name.match(/\(([^()]*)\)/);
+							if (quality != null && quality.length == 2) quality = quality[1];
+							itemsForCheck[i++] = {
+								inventoryId: item.id,
+								classid: item.classid,
+								name: item.name,
+								market_hash_name: item.market_hash_name,
+								rarity: rarity,
+								quality: quality,
+								type: type
+							}
+						}
+					});
+				}
+				redisClient.rpush(redisChannels.itemsToCheck, JSON.stringify(itemsForCheck));
+				return;
+			});
+		} catch (ex) { ShopLogger('Ошибка:' + ex); }
+	} else { setTimeout(MyInvToSite,1000); }
+};
+
+var depCheckOffer = function(deposit_id) {
+    ShopLogger('Проверяем обмен: #' + deposit_id);
+    offers.getOffer({
+        tradeOfferId: deposit_id
+    }, function(err, body) {
+        if(!body.response) return 1;
+        if(body.response.offer){
+            var offer = body.response.offer;
+            if(offer.trade_offer_state == 3){
+                var ritems = offer.items_to_receive,
+                depItems = [],
+                ritems_classid = [],
+                siteitems_id = [];
+                requestify.post('http://' + config.web_api_data.domain + '/api/shop/itemlist', {
+                    secretKey: config.web_api_data.secretKey
+                }).then(function (response) {
+                    var answer = JSON.parse(response.body);
+                    if (answer.success) {
+                        var sitems = answer.items;
+                        ritems.forEach(function (item) {
+                            ritems_classid.push(item.classid);
+                        });
+                        sitems.forEach(function (item) {
+                            siteitems_id.push(item);
+                        });
+                        offers.loadMyInventory({
+                            appId: 730,
+                            contextId: 2,
+                            language: 'russian'
+                        }, function (error, items) {
+                            if (!error) {
+                                var i = 0;
+                                items.forEach(function (item) {
+                                    if ((ritems_classid.indexOf(item.classid) != -1) && (siteitems_id.indexOf(item.id) == -1) && item.tradable) {
+                                        var rarity = '', type = '', arr = item.type.split(','); if (arr.length == 2) rarity = arr[1].trim(); if (arr.length == 3) rarity = arr[2].trim(); if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
+                                        if (arr.length) type = arr[0]; var quality = item.market_name.match(/\(([^()]*)\)/); if (quality != null && quality.length == 2) quality = quality[1];
+                                        depItems[i++] = { inventoryId: item.id, classid: item.classid, name: item.name, appid: item.appid, market_hash_name: item.market_hash_name, rarity: rarity, quality: quality, type: type }
+                                    }
+                                });
+                                var result = {
+                                    id: deposit_id,
+                                    status: 1,
+                                    items: depItems
+                                };
+                                ShopLogger(depItems);
+                                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                                ShopLogger('Обмен #' + deposit_id + ' засчитан');
+                            }
+                        });
+                    }
+                }, function (response) {
+                    ShopLogger('Something wrong with get items list.');
+                });
+            } else if(offer.trade_offer_state == 2){
+                var result = {
+                    id: deposit_id,
+                    status: 2
+                };
+                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                ShopLogger('Обмен #' + deposit_id + ' активен');
+            } else {
+                var result = {
+                    id: deposit_id,
+                    status: 0
+                };
+                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                ShopLogger('Обмен #' + deposit_id + ' отклонен');
+            }
+        }
+    });
+    return 1;
+}
+
+function AcceptMobileOffer() {
+	if(WebSession){
+		var steamcommunityMobileConfirmations = new SteamcommunityMobileConfirmations({
+			steamid: config.bots.shop_bots.shop_bot_1.steamid,
+			identity_secret: config.bots.shop_bots.shop_bot_1.identity_secret,
+			device_id: device_id,
+			webCookie: WebCookies,
+		});
+		steamcommunityMobileConfirmations.FetchConfirmations((function (err, confirmations) {
+			if (err) { return; }
+			if (!confirmations.length) { return; } else {
+				ShopLogger('Ожидает подтверждения: ' + confirmations.length);
+				steamcommunityMobileConfirmations.AcceptConfirmation(confirmations[0], (function (err, result) {
+					if (err) { return; }
+				}).bind(this));
+			}
+		}).bind(this));
+	}
+}
+
+var setItemStatus = function (item, status) {
+    requestify.post('http://' + config.web_api_data.domain + '/api/shop/setItemStatus', {
+        secretKey: config.web_api_data.secretKey,
+        id: item,
+        status: status
+    }).then(function (response) {}, function (response) {
+		ShopLogger('Something wrong with setItemStatus. Retry...');
+		setTimeout(function () {
+			setItemStatus()
+		}, 1000);
+	});
+}
+
+var addNewItems = function () {
+    requestify.post('http://' + config.web_api_data.domain + '/api/shop/newItems', {
+        secretKey: config.web_api_data.secretKey
+    }).then(function (response) {
+		var answer = JSON.parse(response.body);
+		if (answer.success) {
+			ShopLogger('Предметы добавлены на сайт !');
+			itemsToSaleProcced = false;
+		}
+	}, function (response) {
+		ShopLogger('Something wrong with newItems. Retry...');
+		setTimeout(function () {
+			addNewItems()
+		}, 1000);
+	});
+}
+
+var checkDepositComplete = function () {
+    requestify.post('http://' + config.web_api_data.domain + '/api/shop/deposit/check', {
+        secretKey: config.web_api_data.secretKey
+    }).then(function (response) {
+		var answer = JSON.parse(response.body);
+		if (answer.success) {
+			ShopLogger('Обмены проверены !');
+            setTimeout(function(){depProcceed = false;},10000);
+		}
+	}, function (response) {
+		ShopLogger('Something wrong with checkDepositComplete. Retry...');
+		setTimeout(function () {
+			checkDepositComplete()
+		}, 5000);
+	});
+}
+
+var addCheckItems = function () {
+    requestify.post('http://' + config.web_api_data.domain + '/api/shop/checkShop', {
+        secretKey: config.web_api_data.secretKey
+    }).then(function (response) {
+		var answer = JSON.parse(response.body);
+		if (answer.success) {
+			ShopLogger('Проверка завершена успешно!');
+			itemsToCheckProcced = false;
+		}
+	}, function (response) {
+		ShopLogger('Something wrong with check. Retry...');
+	});
+}
+
 var queueProceed = function () {
     redisClient.llen(redisChannels.itemsToSale, function (err, length) {
         if (length > 0 && !itemsToSaleProcced) {
-            siteShopLogger('Ожидает добавления:' + length);
+            ShopLogger('Ожидает добавления:' + length);
             itemsToSaleProcced = true;
             addNewItems();
         }
     });
     redisClient.llen(redisChannels.itemsToCheck, function (err, length) {
         if (length > 0 && !itemsToCheckProcced) {
-            siteShopLogger('Ожидает проверки:' + length);
+            ShopLogger('Ожидает проверки:' + length);
             itemsToCheckProcced = true;
             addCheckItems();
         }
     });
     redisClient.llen(redisChannels.declineList, function(err, length) {
         if (length > 0 && !declineProcceed && WebSession) {
-            siteShopLogger('Отмененных трейдов:' + length);
+            ShopLogger('Отмененных трейдов:' + length);
             declineProcceed = true;
             redisClient.lindex(redisChannels.declineList, 0, function(err, offer) {
                 declineOffersProcceed(offer);
@@ -760,7 +736,7 @@ var queueProceed = function () {
     });
     redisClient.llen(redisChannels.itemsToGive, function (err, length) {
         if (length > 0 && !sendProcceed && WebSession) {
-            siteShopLogger('Ожидает отправки:' + length);
+            ShopLogger('Ожидает отправки:' + length);
             sendProcceed = true;
             redisClient.lindex(redisChannels.itemsToGive, 0, function (err, offerJson) {
                 sendTradeOffer(offerJson);
@@ -775,15 +751,50 @@ var queueProceed = function () {
             });
         }
     });
+    if(!depProcceed && WebSession && !depProcceedCheck ){
+        depProcceed = true;
+        requestify.post('http://' + config.web_api_data.domain + '/api/shop/deposit/toCheck', {
+            secretKey: config.web_api_data.secretKey
+        }).then(function (response) {
+            var answer = JSON.parse(response.body);
+            if (answer.success) {
+                var trades = answer.trades;
+                if(trades.length > 0){
+                    ShopLogger('Проверяем депозиты');
+                    var i = 0;
+                    trades.forEach(function(trade) {
+                        i = i + depCheckOffer(trade);
+                    });
+                    var checkInt = setInterval(function(){
+                        if(trades.length >= i) {
+                            checkDepositComplete();
+                            clearInterval(checkInt);
+                        }
+                    },1000);
+                } else {
+                    setTimeout(function(){depProcceed = false;},10000);
+                }
+            } else {
+                setTimeout(function(){depProcceed = false;},10000);
+            }
+        }), function (response) {
+            ShopLogger('Ошибка проверки депозитов');
+            setTimeout(function(){depProcceed = false;},10000);
+        }
+    }
 }
+
+//checkDepositComplete();
 
 var itemsToSaleProcced = false;
 var itemsToCheckProcced = false;
 var sendProcceed = false;
 var checkProcceed = false;
+var depProcceedCheck = false;
+var depProcceed = false;
 var declineProcceed = false;
 setInterval(queueProceed, 5000);
-setInterval(checkAllOffers, 30000);
+//setInterval(checkAllOffers, 30000);
 setInterval(AcceptMobileOffer, 10000);
 setInterval(handleOffers, 30000);
 

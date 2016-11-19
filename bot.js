@@ -24,10 +24,10 @@ if(socket_conf.unix){
   if ( fs.existsSync(config.ports.bot.path) ) { fs.unlinkSync(config.ports.bot.path); }
   process.umask(socket_conf.procumask);
   server.listen(config.ports.bot.path);
-  console.log('APP started on ' + config.ports.bot.path);
+  console.log('BOT started on ' + config.ports.bot.path);
 } else {
   server.listen(config.ports.bot.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.bot.port);
+  console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);
 }
 
 if(redis_conf.unix){
@@ -182,6 +182,7 @@ function handleOffers() {
 								}
 							});
 						} catch (ex) {
+                            makeErr();
 							steamBotLogger('Ошибка принятия ставки');
 						}
                         return;
@@ -376,7 +377,6 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 					}
 				});
 			} else {
-                steamBotLogger('1');
                 steamBotLogger('Не можем отправить обмен');
                 sendProcceed = false;
             }
@@ -386,8 +386,6 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 			contextId: 2
 		}, function(err, items) {
 			if (err) {
-				steamBotLogger(err);
-                steamBotLogger('2');
 				sendProcceed = false;
 				return;
 			}
@@ -685,7 +683,7 @@ var delayForNewGame = false;
 
 setInterval(queueProceed, 3000);
 setInterval(checkBrokenGames, 600000);
-setInterval(AcceptMobileOffer, 10000);
+setInterval(AcceptMobileOffer, 20000);
 var timetrade = [];
 
 function checkBrokenGames() {
