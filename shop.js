@@ -172,7 +172,6 @@ steamClient.on('logOnResponse', function (logonResp) {
     if (logonResp.eresult === Steam.EResult.OK) {
 		ShopLogger('Вход выполнен!');
         steamFriends.setPersonaState(Steam.EPersonaState.Online);
-
         steamWebLogOn.webLogOn(function (sessionID, newCookie) {
             getSteamAPIKey({
                 sessionID: sessionID,
@@ -575,52 +574,45 @@ var depCheckOffer = function(deposit_id) {
                     var answer = JSON.parse(response.body);
                     if (answer.success) {
                         var sitems = answer.items;
-                        ritems.forEach(function (item) {
-                            ritems_classid.push(item.classid);
-                        });
-                        sitems.forEach(function (item) {
-                            siteitems_id.push(item);
-                        });
-                        offers.loadMyInventory({
-                            appId: 730,
-                            contextId: 2,
-                            language: 'russian'
-                        }, function (error, items) {
+                        ritems.forEach(function (item) { ritems_classid.push(item.classid); });
+                        sitems.forEach(function (item) { siteitems_id.push(item); });
+                        offers.loadMyInventory({ appId: 730, contextId: 2, language: 'russian' }, function (error, items) {
                             if (!error) {
-                                var i = 0;
-                                items.forEach(function (item) {
+                                var i = 0; items.forEach(function (item) {
                                     if ((ritems_classid.indexOf(item.classid) != -1) && (siteitems_id.indexOf(item.id) == -1) && item.tradable) {
                                         var rarity = '', type = '', arr = item.type.split(','); if (arr.length == 2) rarity = arr[1].trim(); if (arr.length == 3) rarity = arr[2].trim(); if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
                                         if (arr.length) type = arr[0]; var quality = item.market_name.match(/\(([^()]*)\)/); if (quality != null && quality.length == 2) quality = quality[1];
                                         depItems[i++] = { inventoryId: item.id, classid: item.classid, name: item.name, appid: item.appid, market_hash_name: item.market_hash_name, rarity: rarity, quality: quality, type: type }
                                     }
                                 });
-                                var result = {
-                                    id: deposit_id,
-                                    status: 1,
-                                    items: depItems
-                                };
-                                ShopLogger(depItems);
+                                var result = { id: deposit_id, status: 1, items: depItems };
                                 redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
                                 ShopLogger('Обмен #' + deposit_id + ' засчитан');
                             }
                         });
                     }
-                }, function (response) {
-                    ShopLogger('Something wrong with get items list.');
-                });
+                }, function (response) { ShopLogger('Something wrong with get items list.'); });
             } else if(offer.trade_offer_state == 2){
-                var result = {
-                    id: deposit_id,
-                    status: 2
-                };
-                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                ShopLogger('Обмен #' + deposit_id + ' активен');
+                var timeCheck = Math.floor(Date.now() / 1000) - offer.time_created;
+                if (timeCheck >= config.bots.shop_bots.shop_bot_1.timeForCancelOffer) {
+                    offers.cancelOffer({tradeOfferId: deposit_id}, function (err, response) {
+                        if (!err) {
+                            var result = { id: deposit_id, status: 0 };
+                            redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                            ShopLogger('Обмен #' + deposit_id + ' просрочен');
+                        } else {
+                            var result = { id: deposit_id, status: 2 };
+                            redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                            ShopLogger('Обмен #' + deposit_id + ' активен');
+                        }
+                    });
+                } else {
+                    var result = { id: deposit_id, status: 2 };
+                    redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                    ShopLogger('Обмен #' + deposit_id + ' активен');
+                }
             } else {
-                var result = {
-                    id: deposit_id,
-                    status: 0
-                };
+                var result = { id: deposit_id, status: 0 };
                 redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
                 ShopLogger('Обмен #' + deposit_id + ' отклонен');
             }
@@ -686,7 +678,7 @@ var checkDepositComplete = function () {
 		var answer = JSON.parse(response.body);
 		if (answer.success) {
 			ShopLogger('Обмены проверены !');
-            setTimeout(function(){depProcceed = false;},10000);
+            setTimeout(function(){depProcceed = false;},20000);
 		}
 	}, function (response) {
 		ShopLogger('Something wrong with checkDepositComplete. Retry...');
@@ -751,7 +743,7 @@ var queueProceed = function () {
             });
         }
     });
-    if(!depProcceed && WebSession && !depProcceedCheck ){
+    if(!depProcceed && WebSession ){
         depProcceed = true;
         requestify.post('http://' + config.web_api_data.domain + '/api/shop/deposit/toCheck', {
             secretKey: config.web_api_data.secretKey
@@ -767,7 +759,7 @@ var queueProceed = function () {
                     });
                     var checkInt = setInterval(function(){
                         if(trades.length >= i) {
-                            checkDepositComplete();
+                            setTimeout(checkDepositComplete,10000);
                             clearInterval(checkInt);
                         }
                     },1000);
@@ -784,17 +776,13 @@ var queueProceed = function () {
     }
 }
 
-//checkDepositComplete();
-
 var itemsToSaleProcced = false;
 var itemsToCheckProcced = false;
 var sendProcceed = false;
 var checkProcceed = false;
-var depProcceedCheck = false;
 var depProcceed = false;
 var declineProcceed = false;
 setInterval(queueProceed, 5000);
-//setInterval(checkAllOffers, 30000);
 setInterval(AcceptMobileOffer, 10000);
 setInterval(handleOffers, 30000);
 

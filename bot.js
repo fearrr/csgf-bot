@@ -683,7 +683,7 @@ var delayForNewGame = false;
 
 setInterval(queueProceed, 3000);
 setInterval(checkBrokenGames, 600000);
-setInterval(AcceptMobileOffer, 20000);
+setInterval(AcceptMobileOffer, 10000);
 var timetrade = [];
 
 function checkBrokenGames() {
