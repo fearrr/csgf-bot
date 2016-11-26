@@ -2,3 +2,4 @@
 !.git*
 servers
 ab*.js
+logs/
