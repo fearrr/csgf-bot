@@ -21,13 +21,13 @@ var auth = require('http-auth'),
     requestify = require('requestify');
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.bot.path) ) { fs.unlinkSync(config.ports.bot.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.bot.path);
-  console.log('BOT started on ' + config.ports.bot.path);
+    if ( fs.existsSync(config.ports.bot.path) ) { fs.unlinkSync(config.ports.bot.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(config.ports.bot.path);
+    console.log('BOT started on ' + config.ports.bot.path);
 } else {
-  server.listen(config.ports.bot.port, socket_conf.host);
-  console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);
+    server.listen(config.ports.bot.port, socket_conf.host);
+    console.log('BOT started on ' + socket_conf.host + ':'  + config.ports.bot.port);
 }
 
 if(redis_conf.unix){
@@ -514,39 +514,41 @@ var checkedOffersProcceed = function(offerJson) {
 					offers.getOffer({
 						tradeOfferId: offer.offerid
 					}, function(err, body) {
-						if(body.response.offer){
-							var offerCheck = body.response.offer;
-							if (offerCheck.trade_offer_state == 2) {
-								checkedProcceed = false;
-								return;
-							}
-							if (offerCheck.trade_offer_state == 3) {
-								redisClient.multi([
-									["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
-									["lrem", redisChannels.usersQueue, 1, offer.steamid64],
-									["rpush", redisChannels.betsList, offerJson],
-									["lrem", redisChannels.checkedList, 0, offerJson]
-								])
-								.exec(function(err, replies) {
-									redisClient.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
-										io.sockets.emit('queue', queues);
-										checkedProcceed = false;
-									});
-								});
-							} else {
-								redisClient.multi([
-									["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
-									["lrem", redisChannels.usersQueue, 1, offer.steamid64],
-									["lrem", redisChannels.checkedList, 0, offerJson]
-								])
-								.exec(function(err, replies) {
-									redisClient.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
-										io.sockets.emit('queue', queues);
-										checkedProcceed = false;
-									});
-								});
-							}
-						}
+                        if(body.response){
+                            if(body.response.offer){
+                                var offerCheck = body.response.offer;
+                                if (offerCheck.trade_offer_state == 2) {
+                                    checkedProcceed = false;
+                                    return;
+                                }
+                                if (offerCheck.trade_offer_state == 3) {
+                                    redisClient.multi([
+                                        ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
+                                        ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
+                                        ["rpush", redisChannels.betsList, offerJson],
+                                        ["lrem", redisChannels.checkedList, 0, offerJson]
+                                    ])
+                                    .exec(function(err, replies) {
+                                        redisClient.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
+                                            io.sockets.emit('queue', queues);
+                                            checkedProcceed = false;
+                                        });
+                                    });
+                                } else {
+                                    redisClient.multi([
+                                        ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
+                                        ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
+                                        ["lrem", redisChannels.checkedList, 0, offerJson]
+                                    ])
+                                    .exec(function(err, replies) {
+                                        redisClient.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
+                                            io.sockets.emit('queue', queues);
+                                            checkedProcceed = false;
+                                        });
+                                    });
+                                }
+                            }
+                        }
 					});
 				}, 1000);
             }
@@ -641,19 +643,19 @@ var queueProceed = function() {
     });
     redisClient.llen(redisChannels.sendOffersList, function(err, length) {
         if (length > 0 && !sendProcceed) {
+            steamBotLogger('Трейдов для отправки:' + length);
 			if (WebSession){
-				steamBotLogger('Трейдов для отправки:' + length);
 				sendProcceed = true;
 				redisClient.lindex(redisChannels.sendOffersList, 0, function(err, offerJson) {
 					offer = JSON.parse(offerJson);
 					sendTradeOffer(offer.appId, offer.steamid, offer.accessToken, offer.items, '', offer.game, offerJson);
 				});
 			} else {
-				steamBotLogger('Трейдов для отправки:' + length);
 				redisClient.lindex(redisChannels.sendOffersList, 0, function(err, offerJson) {
 					offer = JSON.parse(offerJson);
+                    steamBotLogger('Ошибка отправки:' + offer.game);
 					redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
-						if (offer.game>0 && offer.steamid != config.bots.shop_bots.shop_bot_1.steamid){
+						if (offer.game > 0 && offer.steamid != config.bots.shop_bots.shop_bot_1.steamid){
 							setPrizeStatus(offer.game, 2);
 						}
 					});

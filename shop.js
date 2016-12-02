@@ -89,17 +89,31 @@ function rediSubscribe() {
 	});
 }
 
-var details = {
-    account_name: config.bots.shop_bots.shop_bot_1.username,
-    password: config.bots.shop_bots.shop_bot_1.password,
-    two_factor_code: generatekey(config.bots.shop_bots.shop_bot_1.secret)
-};
-
 var steamClient = new Steam.SteamClient();
 var steamUser = new Steam.SteamUser(steamClient);
 var steamFriends = new Steam.SteamFriends(steamClient);
 var steamWebLogOn = new SteamWebLogOn(steamClient, steamUser);
 var offers = new SteamTradeOffers();
+
+function log_in(){
+    var details = {
+        account_name: config.bots.shop_bots.shop_bot_1.username,
+        password: config.bots.shop_bots.shop_bot_1.password,
+        two_factor_code: generatekey(config.bots.shop_bots.shop_bot_1.secret)
+    };
+
+    steamClient = new Steam.SteamClient();
+    steamUser = new Steam.SteamUser(steamClient);
+    steamFriends = new Steam.SteamFriends(steamClient);
+    steamWebLogOn = new SteamWebLogOn(steamClient, steamUser);
+    offers = new SteamTradeOffers();
+    steamClient.connect();
+    steamClient.on('debug', ShopLogger);
+    steamClient.on('error', disconnected);
+    steamClient.on('connected', function () {
+        steamUser.logOn(details);
+    });
+}
 
 // Generation Device_ID
 var hash = require('crypto').createHash('sha1');
@@ -132,32 +146,10 @@ function disconnected(){
     ShopLogger('Отключен от стима');
     WebSession = false;
 	setTimeout(function(){
-		steamClient = new Steam.SteamClient();
-		steamUser = new Steam.SteamUser(steamClient);
-		steamFriends = new Steam.SteamFriends(steamClient);
-		steamWebLogOn = new SteamWebLogOn(steamClient, steamUser);
-		offers = new SteamTradeOffers();
-		steamClient.connect();
+		log_in();
 	}, 60000);
 }
-steamClient.connect();
-steamClient.on('debug', ShopLogger);
-steamClient.on('error', disconnected);
-steamClient.on('connected', function () {
-    steamUser.logOn(details);
-});
-steamClient.on('disconnected', function () {
-	WebSession = false;
-	setTimeout(function(){
-		steamClient = new Steam.SteamClient();
-		steamUser = new Steam.SteamUser(steamClient);
-		steamFriends = new Steam.SteamFriends(steamClient);
-		steamWebLogOn = new SteamWebLogOn(steamClient, steamUser);
-		offers = new SteamTradeOffers();
-		steamClient.connect();
-	}, 60000);
-});
-
+log_in();
 steamFriends.on('friendMsg', function(steamID, message, type) {
 	if (WebSession){
 		if (config.admins.indexOf(steamID) == -1) return;
@@ -349,7 +341,8 @@ app.get('/socket.io//sendTrade/', function (req, res) {
 	if (req.query['secretKey'] == config.web_api_data.secretKey && !sendProcceed && WebSession){
 		if(req.query['data']){
 			var offer = JSON.parse(req.query['data']);
-			var assetids = offer.items;
+            var assetids = offer.items;
+            assetids = assetids.split(',');
 			ShopLogger('Отправляем обмен для депозта: ' + offer.steamid);
 			var senditems = [];
 			for(var i = 0; i < assetids.length; i++) {
