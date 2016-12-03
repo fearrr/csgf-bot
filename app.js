@@ -30,16 +30,16 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config),
     client = redis.createClient(redis_config);
     
-const redisChannels = redis_conf.App_Channels;
+const redisChannels = redis_conf.channels.app;
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.app.path) ) { fs.unlinkSync(config.ports.app.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.app.path);
-  console.log('APP started on ' + config.ports.app.path);
+    if ( fs.existsSync(socket_conf.ports.app.path) ) { fs.unlinkSync(socket_conf.ports.app.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(socket_conf.ports.app.path);
+    console.log('APP started on ' + socket_conf.ports.app.path);
 } else {
-  server.listen(config.ports.app.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
+    server.listen(socket_conf.ports.app.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.app.port);
 }
 
 redisClient.subscribe(redisChannels.show_winners);

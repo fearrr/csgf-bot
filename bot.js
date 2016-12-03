@@ -4,10 +4,10 @@ var bot_id = process.argv[2],
     scribe = require('scribe-js')({createDefaultConsole: false}),
     console = scribe.console({console : {logInConsole: false},createBasic : false});
 const redisChannels = config_redis.channels.bot.getChannels(bot_id);
-console.addLogger('notice', 'grey', {logInConsole: config.loglevel <= config.loglv.ALL});
-console.addLogger('info', 'cyan', {logInConsole: config.loglevel <= config.loglv.INFO});
-console.addLogger('log', 'white', {logInConsole: config.loglevel <= config.loglv.LOG});
-console.addLogger('error', 'red', {logInConsole: config.loglevel <= config.loglv.ERROR});
+console.addLogger('notice', 'grey', {logInConsole: 0});
+console.addLogger('info', 'cyan', {logInConsole: 1});
+console.addLogger('log', 'white', {logInConsole: 2});
+console.addLogger('error', 'red', {logInConsole: 3});
 process.console = console;
 var requestify = require('requestify'),
     crypto = require('crypto'),
@@ -36,9 +36,9 @@ var redisClient = redis.createClient(redis_config);
 // Getting account info
 function account(){
     var data = {
-        account_name: config.bots.classic[bot_id].username,
-        password: config.bots.classic[bot_id].password,
-        two_factor_code: generatekey(config.bots.classic[bot_id].secret)
+        account_name: config.accounts.classic[bot_id].username,
+        password: config.accounts.classic[bot_id].password,
+        two_factor_code: generatekey(config.accounts.classic[bot_id].secret)
     };
     return data;
 }
@@ -99,8 +99,8 @@ function WebLogon() {
             WebCookies = newCookie;
             steamLogger('Обмены доступны!');
             steamConfirmations = new SteamMobileConfirmations({
-                steamid: config.bots.game_bots.game_bot.steamid,
-                identity_secret: config.bots.game_bots.game_bot.identity_secret,
+                steamid: config.accounts.classic[bot_id].steamid,
+                identity_secret: config.accounts.classic[bot_id].identity_secret,
                 device_id: device_id,
                 webCookie: WebCookies,
             });
@@ -224,7 +224,7 @@ function handleOffers() {
         body.response.trade_offers_received.forEach(function(offer) {
             if (offer.trade_offer_state != 2) return;
             if (is_checkingOfferExists(offer.tradeofferid)) return;
-            if (offer.items_to_give != null && config.users().indexOf(offer.steamid_other) != -1) {
+            if (offer.items_to_give != null && config.admins.indexOf(offer.steamid_other) != -1) {
                 try {
                     console.tag('Бот #' + bot_id).notice('Обрабатываем обмен #' + offer.tradeofferid + ' От: ' + offer.steamid_other + ' Без проверок');
                     steamOffers.acceptOffer({
