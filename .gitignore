@@ -1,0 +1,4 @@
+.*
+!.git*
+servers
+logs/
