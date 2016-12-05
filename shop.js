@@ -22,25 +22,25 @@ var auth = require('http-auth'),
     
 
 if(socket_conf.unix){
-    if ( fs.existsSync(config.ports.deposit.path) ) { fs.unlinkSync(config.ports.deposit.path); }
+    if ( fs.existsSync(socket_conf.ports.deposit.path) ) { fs.unlinkSync(socket_conf.ports.deposit.path); }
     process.umask(socket_conf.procumask);
-    app.listen(config.ports.deposit.path);
-    console.log('APP started on ' + config.ports.deposit.path);
+    app.listen(socket_conf.ports.deposit.path);
+    console.log('APP started on ' + socket_conf.ports.deposit.path);
 } else {
-    server.listen(config.ports.deposit.port, socket_conf.host);
-    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.deposit.port);
+    server.listen(socket_conf.ports.deposit.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.deposit.port);
 }
 if(socket_conf.unix){
-    if ( fs.existsSync(config.ports.shop.path) ) { fs.unlinkSync(config.ports.shop.path); }
+    if ( fs.existsSync(socket_conf.ports.shop.path) ) { fs.unlinkSync(socket_conf.ports.shop.path); }
     process.umask(socket_conf.procumask);
-    server.listen(config.ports.shop.path);
-    console.log('APP started on ' + config.ports.shop.path);
+    server.listen(socket_conf.ports.shop.path);
+    console.log('APP started on ' + socket_conf.ports.shop.path);
 } else {
-    server.listen(config.ports.shop.port, socket_conf.host);
-    console.log('APP started on ' + socket_conf.host + ':'  + config.ports.shop.port);
+    server.listen(socket_conf.ports.shop.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.shop.port);
 }
 
-const redisChannels = redis_conf.Shop_Channels;
+const redisChannels = redis_conf.channels.shop;
 
 if(redis_conf.unix){
     var redis_config = {
@@ -97,9 +97,9 @@ var offers = new SteamTradeOffers();
 
 function log_in(){
     var details = {
-        account_name: config.bots.shop_bots.shop_bot_1.username,
-        password: config.bots.shop_bots.shop_bot_1.password,
-        two_factor_code: generatekey(config.bots.shop_bots.shop_bot_1.secret)
+        account_name: config.accounts.shop[0].username,
+        password: config.accounts.shop[0].password,
+        two_factor_code: generatekey(config.accounts.shop[0].secret)
     };
 
     steamClient = new Steam.SteamClient();
@@ -233,7 +233,7 @@ function handleOffers() {
 						offers.getTradeHoldDuration({
 							tradeOfferId: offer.tradeofferid
 						}, function(err, response) {
-							if(offer.steamid_other != config.bots.game_bots.game_bot.steamid){
+							if(config.admins.indexOf(offer.steamid_other) != -1){
 								if (err) {
 									makeErr();
 									ShopLogger('Ошибка проврки на задержку: ' + offer.tradeofferid);
@@ -338,7 +338,7 @@ steamUser.on('tradeOffers', function (number) {
 });
 
 app.get('/socket.io//sendTrade/', function (req, res) {
-	if (req.query['secretKey'] == config.web_api_data.secretKey && !sendProcceed && WebSession){
+	if (req.query['secretKey'] == config.web.secretKey && !sendProcceed && WebSession){
 		if(req.query['data']){
 			var offer = JSON.parse(req.query['data']);
             var assetids = offer.items;
@@ -360,7 +360,7 @@ app.get('/socket.io//sendTrade/', function (req, res) {
 				accessToken: offer.accessToken,
 				itemsFromThem: senditems,
 				itemsFromMe: [],
-				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web_api_data.nameSite
+				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite
 			}, function(err, r) {
 				if(err) {
 					ShopLogger('Ошибка при отправке трейда' + err.message);
@@ -411,7 +411,7 @@ var sendTradeOffer = function(offerJson) {
 				}
 			}
 			if (num > 0) {
-				offers.makeOffer({ partnerSteamId: offer.steamid, accessToken: offer.accessToken, itemsFromMe: itemsFromMe, itemsFromThem: [], message: 'Спасибо за покупку на сайте ' + config.web_api_data.nameSite
+				offers.makeOffer({ partnerSteamId: offer.steamid, accessToken: offer.accessToken, itemsFromMe: itemsFromMe, itemsFromThem: [], message: 'Спасибо за покупку на сайте ' + config.web.nameSite
 				}, function(err, response) {
                     if (err) {
 						makeErr();
@@ -561,8 +561,8 @@ var depCheckOffer = function(deposit_id) {
                 depItems = [],
                 ritems_classid = [],
                 siteitems_id = [];
-                requestify.post('http://' + config.web_api_data.domain + '/api/shop/itemlist', {
-                    secretKey: config.web_api_data.secretKey
+                requestify.post('http://' + config.web.domain + '/api/shop/itemlist', {
+                    secretKey: config.web.secretKey
                 }).then(function (response) {
                     var answer = JSON.parse(response.body);
                     if (answer.success) {
@@ -617,8 +617,8 @@ var depCheckOffer = function(deposit_id) {
 function AcceptMobileOffer() {
 	if(WebSession){
 		var steamcommunityMobileConfirmations = new SteamcommunityMobileConfirmations({
-			steamid: config.bots.shop_bots.shop_bot_1.steamid,
-			identity_secret: config.bots.shop_bots.shop_bot_1.identity_secret,
+			steamid: config.accounts.shop[0].steamid,
+			identity_secret: config.accounts.shop[0].identity_secret,
 			device_id: device_id,
 			webCookie: WebCookies,
 		});
@@ -635,8 +635,8 @@ function AcceptMobileOffer() {
 }
 
 var setItemStatus = function (item, status) {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/setItemStatus', {
-        secretKey: config.web_api_data.secretKey,
+    requestify.post('http://' + config.web.domain + '/api/shop/setItemStatus', {
+        secretKey: config.web.secretKey,
         id: item,
         status: status
     }).then(function (response) {}, function (response) {
@@ -648,8 +648,8 @@ var setItemStatus = function (item, status) {
 }
 
 var addNewItems = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/newItems', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/shop/newItems', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var answer = JSON.parse(response.body);
 		if (answer.success) {
@@ -665,8 +665,8 @@ var addNewItems = function () {
 }
 
 var checkDepositComplete = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/deposit/check', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/shop/deposit/check', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var answer = JSON.parse(response.body);
 		if (answer.success) {
@@ -682,8 +682,8 @@ var checkDepositComplete = function () {
 }
 
 var addCheckItems = function () {
-    requestify.post('http://' + config.web_api_data.domain + '/api/shop/checkShop', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/shop/checkShop', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var answer = JSON.parse(response.body);
 		if (answer.success) {
@@ -738,8 +738,8 @@ var queueProceed = function () {
     });
     if(!depProcceed && WebSession ){
         depProcceed = true;
-        requestify.post('http://' + config.web_api_data.domain + '/api/shop/deposit/toCheck', {
-            secretKey: config.web_api_data.secretKey
+        requestify.post('http://' + config.web.domain + '/api/shop/deposit/toCheck', {
+            secretKey: config.web.secretKey
         }).then(function (response) {
             var answer = JSON.parse(response.body);
             if (answer.success) {

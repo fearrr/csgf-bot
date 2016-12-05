@@ -30,16 +30,16 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config),
     client = redis.createClient(redis_config);
     
-const redisChannels = redis_conf.App_Channels;
+const redisChannels = redis_conf.channels.app;
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.app.path) ) { fs.unlinkSync(config.ports.app.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.app.path);
-  console.log('APP started on ' + config.ports.app.path);
+    if ( fs.existsSync(socket_conf.ports.app.path) ) { fs.unlinkSync(socket_conf.ports.app.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(socket_conf.ports.app.path);
+    console.log('APP started on ' + socket_conf.ports.app.path);
 } else {
-  server.listen(config.ports.app.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.app.port);
+    server.listen(socket_conf.ports.app.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.app.port);
 }
 
 redisClient.subscribe(redisChannels.show_winners);
@@ -90,9 +90,9 @@ redisClient.on("message", function (channel, message) {
 	if (channel == redisChannels.fuser_add) {
         var id = JSON.parse(message);
 		if (id != default_conf.bonus_id){
-            requestify.post('http://' + config.web_api_data.domain + '/api/userinfo', {
+            requestify.post('http://' + config.web.domain + '/api/userinfo', {
                 steamid: id,
-                secretKey: config.web_api_data.secretKey
+                secretKey: config.web.secretKey
             }).then(function (response) {
                 user = JSON.parse(response.body);
                 if(user.steamid64 != default_conf.bonus_id){
@@ -153,8 +153,8 @@ redisClient.on("message", function (channel, message) {
 });
 
 function updateInformation() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/update', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/update', {
+        secretKey: config.web.secretKey
     }).then(function(response) {
 		updateinfo = JSON.parse(response.body);
 	}, function(response) {
@@ -167,9 +167,9 @@ io.sockets.on('connection', function(socket) {
 	var user = false;
 	socket.on('steamid64', function(id) {
 		if (id != default_conf.bonus_id){
-            requestify.post('http://' + config.web_api_data.domain + '/api/userinfo', {
+            requestify.post('http://' + config.web.domain + '/api/userinfo', {
                 steamid: id,
-                secretKey: config.web_api_data.secretKey
+                secretKey: config.web.secretKey
             }).then(function (response) {
                 user = JSON.parse(response.body);
                 if(user.steamid64 != default_conf.bonus_id){
@@ -265,8 +265,8 @@ function startTimer() {
 }
 
 function getCurrentGame() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/getCurrentGame', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/getCurrentGame', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
 		console.tag('Игра').log('Текущая игра #' + game.id);
@@ -274,14 +274,15 @@ function getCurrentGame() {
 		if (game.status == 2) startTimer();
 		if (game.status == 3) newGame();
 	}, function (response) {
+        console.tag('Игра').log(response);
 		console.tag('Игра').log('Ошибка [getCurrentGame]');
 		setTimeout(getCurrentGame, 1000);
 	});
 }
 
 function showSliderWinners() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/getWinners', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/getWinners', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var winners = response.body;
 		console.tag('Игра').log('Показываем слайдер!');
@@ -314,9 +315,9 @@ function startNGTimer(winners) {
 }
 
 function setGameStatus(status) {
-    requestify.post('http://' + config.web_api_data.domain + '/api/setGameStatus', {
+    requestify.post('http://' + config.web.domain + '/api/setGameStatus', {
 		status: status,
-		secretKey: config.web_api_data.secretKey
+		secretKey: config.web.secretKey
 	}).then(function (response) {
 		sstatus = true;
 		game = JSON.parse(response.body);
@@ -328,8 +329,8 @@ function setGameStatus(status) {
 }
 
 function newGame() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/novigra', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/novigra', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		updateinfo.last = updateinfo.last + 1;
 		preFinish = false;
@@ -377,4 +378,31 @@ function checkSteamInventoryStatus() {
 		console.log('Ошибка - Стим недоступен [5]');
 	});
 }
+var checkNewBet = function() {
+    requestify.post('http://' + config.web.domain + '/api/newBet', {
+        secretKey: config.web.secretKey
+    }).then(function(response) {
+        var answer = JSON.parse(response.body);
+        if (answer.success) {
+            betsProcceed = false;
+        }
+    }, function(response) {
+        console.tag('Проверка').log('Не можем отправить новую ставку. Retry...');
+        setTimeout(function() {
+            checkNewBet()
+        }, 1000);
+    });
+}
 setInterval(checkSteamInventoryStatus, 1000 * config.timers.check_steam_status);
+var queueProceed = function() {
+    client.llen(redis_conf.channels.bot.betsList, function(err, length) {
+        if (length > 0 && !betsProcceed) {
+            console.tag('Проверка').log('Ставок:' + length);
+            betsProcceed = true;
+            checkNewBet();
+        }
+    });
+}
+var betsProcceed = false;
+
+setInterval(queueProceed, 3000);

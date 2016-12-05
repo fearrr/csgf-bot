@@ -28,13 +28,13 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.chat.path) ) { fs.unlinkSync(config.ports.chat.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.chat.path);
-  console.log('APP started on ' + config.ports.chat.path);
+    if ( fs.existsSync(socket_conf.ports.chat.path) ) { fs.unlinkSync(socket_conf.ports.chat.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(socket_conf.ports.chat.path);
+    console.log('APP started on ' + socket_conf.ports.chat.path);
 } else {
-  server.listen(config.ports.chat.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.chat.port);
+    server.listen(socket_conf.ports.chat.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.chat.port);
 }
 
 redisClient.setMaxListeners(0);
@@ -49,8 +49,8 @@ redisClient.on("message", function (channel) {
     }
 });
 function updateChat() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/chat', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/chat', {
+        secretKey: config.web.secretKey
     }).then(function(response) {
 		chat_messages = JSON.parse(response.body);
 		io.sockets.emit('chat_messages', chat_messages);

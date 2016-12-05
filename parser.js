@@ -66,8 +66,8 @@ function parce(){
                         console.tag('Парсер').log('Загрузили: ' + page);
                         redisClient.rpush('parserSteam', result);
                         //fs.writeFile('page'+page, result);
-                        requestify.post('http://' + config.web_api_data.domain + '/api/parseSteam', {
-                            secretKey: config.web_api_data.secretKey
+                        requestify.post('http://' + config.web.domain + '/api/parseSteam', {
+                            secretKey: config.web.secretKey
                         }).then(function (response) {
                             console.tag('Парсер').log('Вещи загружены');
                             page++; loading = false;

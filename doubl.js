@@ -28,13 +28,13 @@ if(redis_conf.unix){
 var redisClient = redis.createClient(redis_config);
 
 if(socket_conf.unix){
-  if ( fs.existsSync(config.ports.double.path) ) { fs.unlinkSync(config.ports.double.path); }
-  process.umask(socket_conf.procumask);
-  server.listen(config.ports.double.path);
-  console.log('APP started on ' + config.ports.double.path);
+    if ( fs.existsSync(socket_conf.ports.double.path) ) { fs.unlinkSync(socket_conf.ports.double.path); }
+    process.umask(socket_conf.procumask);
+    server.listen(socket_conf.ports.double.path);
+    console.log('APP started on ' + socket_conf.ports.double.path);
 } else {
-  server.listen(config.ports.double.port, socket_conf.host);
-  console.log('APP started on ' + socket_conf.host + ':'  + config.ports.double.port);
+    server.listen(socket_conf.ports.double.port, socket_conf.host);
+    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.double.port);
 }
 
 setTimeout(rediSubscribe, 1000);
@@ -61,8 +61,8 @@ var timer,
 var preFinish = false;
 
 function getCurrentGame() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/double/getCurrentGame', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/double/getCurrentGame', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
 		console.tag('Double').log('Текущая игра #' + game.id);
@@ -103,9 +103,9 @@ function startTimer() {
 }
 
 function setGameStatus(status) {
-    requestify.post('http://' + config.web_api_data.domain + '/api/double/setGameStatus', {
+    requestify.post('http://' + config.web.domain + '/api/double/setGameStatus', {
         status: status,
-        secretKey: config.web_api_data.secretKey
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
 		console.tag('Double').log('Статус игры: ' + status);
@@ -116,8 +116,8 @@ function setGameStatus(status) {
 }
 
 function showSliderWinners() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/double/startGame', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/double/startGame', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var winners = response.body;
 		console.tag('Double').log('Показываем слайдер!');
@@ -145,8 +145,8 @@ function showSliderWinners() {
 }
 
 function newGame() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/double/newGame', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/double/newGame', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		var data = JSON.parse(response.body);
 		preFinish = false;

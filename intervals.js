@@ -8,8 +8,8 @@ getOutNames();
 setInterval(getOutNames, 1000 * config.timers.give_out_timer);
 
 function getOutNames() {
-    requestify.post('http://' + config.web_api_data.domain + '/api/out/check', {
-        secretKey: config.web_api_data.secretKey
+    requestify.post('http://' + config.web.domain + '/api/out/check', {
+        secretKey: config.web.secretKey
     }).then(function (response) {
 		console.tag('Раздача').log('Пользователи проверены');
 	}, function (response) {
