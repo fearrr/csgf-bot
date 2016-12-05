@@ -26,7 +26,7 @@ if(redis_conf.unix){
 
 var redisClient = redis.createClient(redis_config);
 
-var PCount = 15;
+var PCount = 90;
 var itemscount
 function url(page){
     var start = 100 * (page - 1);
@@ -44,9 +44,6 @@ function generatekey(secret) {
     return code;
 }
 parce();
-setInterval(function(){
-    parce();
-}, 3*60*60*1000);
 function parce(){
     UrlLoad.login({
         accountName: account.username,
