@@ -84,11 +84,6 @@ function steamLogin(){
             WebLogon();
         }
     });
-    steamUser.on('tradeOffers', function(number) {
-        if (number > 0) {
-            handleOffers();
-        }
-    });
 }
 function WebLogon() {
     steamWebLogOn.webLogOn(function(sessionID, newCookie) {
@@ -163,6 +158,11 @@ function disconnected(){
 // Starting steam;
 //
 steamLogin();
+steamUser.on('tradeOffers', function(number) {
+    if (number > 0) {
+        handleOffers();
+    }
+});
 var Queue = setInterval(function(){queueProceed()}, 3000);
 //
 // Queue Interval
@@ -199,13 +199,14 @@ var queueProceed = function() {
 			if (WebSession){
 				sendProcceed = true;
 				redisClient.lindex(redisChannels.sendOffersList, 0, function(err, offerJson) {
-					offer = JSON.parse(offerJson);
-					sendTradeOffer(offer.appId, offer.steamid, offer.accessToken, offer.items, '', offer.game, offerJson);
+                    redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
+                        sendTradeOffer(offerJson);
+                    });
 				});
 			} else {
 				redisClient.lindex(redisChannels.sendOffersList, 0, function(err, offerJson) {
 					offer = JSON.parse(offerJson);
-                    console.tag('Бот #' + bot_id).error('Ошибка отправки: ' + offer.game + ' Сессия со стимом не установлен!а');
+                    console.tag('Бот #' + bot_id).error('Ошибка отправки: ' + offer.game + ' Сессия со стимом не установлен!');
 					redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
 						if (offer.game > 0){
 							setPrizeStatus(offer.game, 2);
@@ -273,18 +274,18 @@ function handleOffers() {
                         console.tag('Бот #' + bot_id).notice('Трейд отменен из за задержки: #' + offer.tradeofferid);
                         return;
                     }
+                    if (offer.items_to_receive != null && offer.items_to_give == null) {
+                        checkingOffers.push(offer.tradeofferid);
+                        console.tag('Бот #' + bot_id).notice('Обмен обработан #' + offer.tradeofferid + ' От: ' + offer.steamid_other);
+                        redisClient.multi([
+                            ['rpush', redisChannels.tradeoffersList, offer.tradeofferid],
+                            ['rpush', redisChannels.checkItemsList, JSON.stringify(offer)],
+                            ['rpush', redisChannels.usersQueue, offer.steamid_other]
+                        ]).exec(function(err, replies) {
+                            return;
+                        });
+                    }
                 });
-                if (offer.items_to_receive != null && offer.items_to_give == null) {
-                    checkingOffers.push(offer.tradeofferid);
-                    console.tag('Бот #' + bot_id).notice('Обмен обработан #' + offer.tradeofferid + ' От: ' + offer.steamid_other);
-                    redisClient.multi([
-                        ['rpush', redisChannels.tradeoffersList, offer.tradeofferid],
-                        ['rpush', redisChannels.checkItemsList, JSON.stringify(offer)],
-                        ['rpush', redisChannels.usersQueue, offer.steamid_other]
-                    ]).exec(function(err, replies) {
-                        return;
-                    });
-                }
             });
         });
     }
@@ -369,9 +370,16 @@ var parseOffer = function(offer, offerJson) {
 		});
     });
 }
-var getActiveOffers = function(){
-    var sentItems = [];
-    try {
+var sendTradeOffer = function(offerJson) {
+    var offer = JSON.parse(offerJson);
+    if (offer.game > 0){
+        console.tag('Бот #' + bot_id).info('Отправка выигрыша из игры #' + offer.game + ' Для ' + offer.steamid);
+    } else {
+        console.tag('Бот #' + bot_id).info('Отправка комиссии в магазин');
+    }
+	//try {
+
+        var sentItems = [];
 		steamOffers.getOffers({
 			get_sent_offers: 1,
 			active_only : 1
@@ -389,25 +397,14 @@ var getActiveOffers = function(){
 				});
                 return sentItems;
 			} else {
-                console.tag('Бот #' + bot_id).error('Не можем отправить обмен #' + offer.tradeofferid);
+                console.tag('Бот #' + bot_id).error('Не могу получить отправленные предметы');
+                setPrizeStatus(offer.game, 2);
                 sendProcceed = false;
+                return;
             }
 		});
-    } catch (ex) {
-		console.tag('Бот #' + bot_id).error('Не можем отправить обмен #' + offer.tradeofferid);
-		sendProcceed = false;
-	}
-    return false;
-}
-var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, message, game, offerJson) {
-	try {
-		var sentItems = getActiveOffers();
-        if (!sentItems && game > 0){
-            setPrizeStatus(game, 2);
-            return;
-        }
 		steamOffers.loadMyInventory({
-			appId: appId,
+			appId: offer.appId,
 			contextId: 2
 		}, function(err, items) {
 			if (err) {
@@ -417,19 +414,14 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 				return;
 			}
 			var itemsFromMe = [], checkArr = [], num = 0, i = 0;
-            if (game > 0){
-                console.tag('Бот #' + bot_id).info('Отправка выигрыша из игры #' + game);
-            } else {
-                console.tag('Бот #' + bot_id).info('Отправка комиссии в магазин');
-            }
             // itm sel (will be changed)
-			for (var i = 0; i < sendItems.length; i++) {
+			for (var i = 0; i < offer.items.length; i++) {
 				for (var j = 0; j < items.length; j++) {
-					if (items[j].tradable && (items[j].classid == sendItems[i])) {
+					if (items[j].tradable && (items[j].classid == offer.items[i])) {
 						if ((sentItems.indexOf(items[j].id) == -1) && (checkArr.indexOf(items[j].id) == -1) && (checkArrGlobal.indexOf(items[j].id) == -1)) {
 							checkArr[i] = items[j].id;
 							itemsFromMe[num] = {
-								appid: 730,
+								appid: offer.appId,
 								contextid: 2,
 								amount: items[j].amount,
 								assetid: items[j].id
@@ -442,19 +434,19 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 			}
 			if (num > 0) {
 				steamOffers.makeOffer({
-					partnerSteamId: partnerSteamId,
-					accessToken: accessToken,
+					partnerSteamId: offer.steamid,
+					accessToken: offer.accessToken,
 					itemsFromMe: itemsFromMe,
 					itemsFromThem: [],
-					message: 'Поздравляем с победой на сайте ' + config.web.nameSite + ' | В игре #' + game + ' | С уважением, Администрация проекта'
+					message: 'Поздравляем с победой на сайте ' + config.web.nameSite + ' | В игре #' + offer.game + ' | С уважением, Администрация проекта'
 				}, function(err, response) {
 					if (err) {
 						console.tag('Бот #' + bot_id).error('Ошибка отправки обмена: ' + err.message);
 						getErrorCode(err.message, function(errCode) {
 							if (errCode == 15 || errCode == 25 || err.message.indexOf('an error sending your trade offer.  Please try again later.')) {
 								redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
-									if (game > 0){
-										setPrizeStatus(game, 2);
+									if (offer.game > 0){
+										setPrizeStatus(offer.game, 2);
 									}
 								});
 							}
@@ -464,7 +456,9 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 					}
 					checkArrGlobal = checkArrGlobal.concat(checkArr);
 					redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
-						if (game > 0) setPrizeStatus(game, 1);
+						if (offer.game > 0){
+                           setPrizeStatus(offer.game, 1); 
+                        }
 						sendProcceed = false;
 					});
 					console.tag('Бот #' + bot_id).info('Обмен #' + response.tradeofferid + ' отправлен!');
@@ -473,20 +467,20 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken, sendItems, mes
 			} else {
 				console.tag('Бот #' + bot_id).notice('Нечего отправлять!');
 				redisClient.lrem(redisChannels.sendOffersList, 0, offerJson, function(err, data) {
-					if (game > 0){setPrizeStatus(game, 1);}
+					if (offer.game > 0){
+                        setPrizeStatus(offer.game, 1);
+                    }
 					sendProcceed = false;
 				});
 			}
 		});
-	} catch (ex) {
-        if (game > 0){
-            console.tag('Бот #' + bot_id).error('Ошибка отправки обмена! Игра №' + game);
-        } else {
-            console.tag('Бот #' + bot_id).error('Отправка комиссии в магазин');
+	/*} catch (ex) {
+        console.tag('Бот #' + bot_id).error('Ошибка отправки обмена! Игра №' + offer.game);
+        if (offer.game > 0){
+            setPrizeStatus(offer.game, 2);
         }
-		if (game > 0) setPrizeStatus(game, 2);
 		sendProcceed = false;
-	}
+	}*/
 };
 var checkedOffersProcceed = function(offerJson) {
     var offer = JSON.parse(offerJson);
@@ -580,6 +574,7 @@ var is_checkingOfferExists = function(tradeofferid) {
 }
 // Requests
 var setPrizeStatus = function(game, status) {
+    //console.tag('Бот #' + bot_id).log(game,status,bot_id);
     requestify.post('http://' + config.web.domain + '/api/setPrizeStatus', {
         secretKey: config.web.secretKey,
         game: game,
@@ -588,7 +583,7 @@ var setPrizeStatus = function(game, status) {
     }).then(function(response) {}, function(response) {
         console.tag('Бот #' + bot_id).error('Не можем установить статус отправки. Повторяем...');
         setTimeout(function() {
-            setPrizeStatus()
+            setPrizeStatus(game, status)
         }, 1000);
     });
 }

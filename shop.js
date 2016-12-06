@@ -455,7 +455,7 @@ var checkOfferForExpired = function (offer) {
             var offerCheck = body.response.offer;
             if (offerCheck.trade_offer_state == 2) {
                 var timeCheck = Math.floor(Date.now() / 1000) - offerCheck.time_created;
-                if (timeCheck >= config.bots.shop_bots.shop_bot_1.timeForCancelOffer) {
+                if (timeCheck >= config.timers.timeForCancelOffer) {
                     offers.cancelOffer({tradeOfferId: offer}, function (err, response) {
                         if (!err) {
                             redisClient.lrem(redisChannels.offersToCheck, 0, offer, function (err, data) {
@@ -587,7 +587,7 @@ var depCheckOffer = function(deposit_id) {
                 }, function (response) { ShopLogger('Something wrong with get items list.'); });
             } else if(offer.trade_offer_state == 2){
                 var timeCheck = Math.floor(Date.now() / 1000) - offer.time_created;
-                if (timeCheck >= config.bots.shop_bots.shop_bot_1.timeForCancelOffer) {
+                if (timeCheck >= config.timers.timeForCancelOffer) {
                     offers.cancelOffer({tradeOfferId: deposit_id}, function (err, response) {
                         if (!err) {
                             var result = { id: deposit_id, status: 0 };
