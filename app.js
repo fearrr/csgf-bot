@@ -348,35 +348,39 @@ function newGame() {
 	});
 }
 function checkSteamInventoryStatus() {
-    requestify.get('https://api.steampowered.com/ICSGOServers_730/GetGameServersStatus/v1/?key=' + config.steam.apiKey)
-	.then(function (response) {
-		var answer = JSON.parse(response.body);
-		steamStatus = answer.result.services;
-		//console.tag('SteamStatus').info(steamStatus);
-		client.set('steam.community.status', steamStatus.SteamCommunity);
-		client.set('steam.inventory.status', steamStatus.IEconItems);
-		var stat = 'good';
-		var rus = 'Нагрузка серверов Steam: Средняя';
-		if(steamStatus.IEconItems == 'normal' && steamStatus.SteamCommunity == 'normal'){
-			stat = 'good';
-			rus = 'Нагрузка серверов Steam: Слабая';
-		}
-		if(steamStatus.IEconItems == 'normal' && steamStatus.SteamCommunity == 'delayed'){
-			stat = 'normal';
-			rus = 'Нагрузка серверов Steam: Средняя';
-		}
-		if(steamStatus.IEconItems == 'critical' || steamStatus.SteamCommunity == 'critical'){
-			stat = 'bad';
-			rus = 'Нагрузка серверов Steam: Сильная';
-		}
-		var result = {
-			'rus': rus,
-			'stat': stat
-		}
-		io.sockets.emit('status', result);
-	}, function (response) {
-		console.log('Ошибка - Стим недоступен [5]');
-	});
+    try {
+        requestify.get('https://api.steampowered.com/ICSGOServers_730/GetGameServersStatus/v1/?key=' + config.steam.apiKey)
+        .then(function (response) {
+            var answer = JSON.parse(response.body);
+            steamStatus = answer.result.services;
+            //console.tag('SteamStatus').info(steamStatus);
+            client.set('steam.community.status', steamStatus.SteamCommunity);
+            client.set('steam.inventory.status', steamStatus.IEconItems);
+            var stat = 'good';
+            var rus = 'Нагрузка серверов Steam: Средняя';
+            if(steamStatus.IEconItems == 'normal' && steamStatus.SteamCommunity == 'normal'){
+                stat = 'good';
+                rus = 'Нагрузка серверов Steam: Слабая';
+            }
+            if(steamStatus.IEconItems == 'normal' && steamStatus.SteamCommunity == 'delayed'){
+                stat = 'normal';
+                rus = 'Нагрузка серверов Steam: Средняя';
+            }
+            if(steamStatus.IEconItems == 'critical' || steamStatus.SteamCommunity == 'critical'){
+                stat = 'bad';
+                rus = 'Нагрузка серверов Steam: Сильная';
+            }
+            var result = {
+                'rus': rus,
+                'stat': stat
+            }
+            io.sockets.emit('status', result);
+        }, function (response) {
+            console.tag('Игра').log('Ошибка - Стим недоступен [5]');
+        });
+    } catch (ex) {
+        console.tag('Игра').log('Ошибка - Стим недоступен [5]');
+	}
 }
 var checkNewBet = function() {
     requestify.post('http://' + config.web.domain + '/api/newBet', {

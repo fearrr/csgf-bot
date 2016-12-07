@@ -56,6 +56,8 @@ var checkingOffers = [],
     betsProcceed = false,
     sendProcceed = false,
     WebSession = false,
+    MobileConf = false,
+    handleOff = false,
     steamConfirmations,
     steamOffers = new SteamTradeOffers(),
     steamClient = new Steam.SteamClient(),
@@ -107,7 +109,7 @@ function WebLogon() {
                         device_id: device_id,
                         webCookie: WebCookies,
                     });
-                    AcceptMobileOffer();
+                    //AcceptMobileOffer();
                 } else {
                     setTimeout(function(){
                         WebLogon();
@@ -163,7 +165,8 @@ steamUser.on('tradeOffers', function(number) {
         handleOffers();
     }
 });
-var Queue = setInterval(function(){queueProceed()}, 3000);
+var Queue = setInterval(function(){queueProceed()}, 3000),
+    aOfrs = setInterval(function(){AcceptMobileOffer()}, 15000);
 //
 // Queue Interval
 //
@@ -230,17 +233,18 @@ var queueProceed = function() {
 //
 // functions
 function handleOffers() {
-    if (WebSession){
+    if (WebSession && !handleOff){
+        handleOff = true;
         steamOffers.getOffers({
             get_received_offers: 1,
             active_only: 1
         }, function(error, body) {
-            if (!body){makeErr();return;}
+            if (!body){makeErr();handleOff=false;return;}
             if (!body.response){makeErr();return;}
-            if (!body.response.trade_offers_received){makeErr();return;}
+            if (!body.response.trade_offers_received){makeErr();handleOff=false;return;}
             body.response.trade_offers_received.forEach(function(offer) {
-                if (offer.trade_offer_state != 2) return;
-                if (is_checkingOfferExists(offer.tradeofferid)) return;
+                if (offer.trade_offer_state != 2){handleOff=false;return;}
+                if (is_checkingOfferExists(offer.tradeofferid)){handleOff=false;return;}
                 if (offer.items_to_give != null && config.admins.indexOf(offer.steamid_other) != -1) {
                     try {
                         console.tag('Бот #' + bot_id).notice('Обрабатываем обмен #' + offer.tradeofferid + ' От: ' + offer.steamid_other + ' Без проверок');
@@ -256,10 +260,12 @@ function handleOffers() {
                         makeErr();
                         console.tag('Бот #' + bot_id).error('Ошибка при принятии обмена #' + offer.tradeofferid);
                     }
+                    handleOff=false;
                     return;
                 }
                 if (offer.items_to_give != null) {
                     steamOffers.declineOffer({tradeOfferId: offer.tradeofferid});
+                    handleOff=false;
                     return;
                 }
                 steamOffers.getTradeHoldDuration({
@@ -268,10 +274,12 @@ function handleOffers() {
                     if (err) {
                         makeErr();
                         console.tag('Бот #' + bot_id).error('Ошибка проверки на задержку: #' + offer.tradeofferid);
+                        handleOff=false;
                         return;
                     } else if (response.their != 0) {
                         steamOffers.declineOffer({tradeOfferId: offer.tradeofferid});
                         console.tag('Бот #' + bot_id).notice('Трейд отменен из за задержки: #' + offer.tradeofferid);
+                        handleOff=false;
                         return;
                     }
                     if (offer.items_to_receive != null && offer.items_to_give == null) {
@@ -282,6 +290,7 @@ function handleOffers() {
                             ['rpush', redisChannels.checkItemsList, JSON.stringify(offer)],
                             ['rpush', redisChannels.usersQueue, offer.steamid_other]
                         ]).exec(function(err, replies) {
+                            handleOff=false;
                             return;
                         });
                     }
@@ -298,7 +307,7 @@ var parseOffer = function(offer, offerJson) {
         tradeOfferId: offer.tradeofferid,
         language: "russian"
     }, function(err, hitems) {
-        if (err) {
+        if (err || hitems === 'undefined') {
             redisClient.multi([
                 ['rpush', redisChannels.declineList, offer.tradeofferid],
                 ['lrem', redisChannels.checkItemsList, 0, offerJson],
@@ -395,7 +404,6 @@ var sendTradeOffer = function(offerJson) {
                         }
 					}
 				});
-                return sentItems;
 			} else {
                 console.tag('Бот #' + bot_id).error('Не могу получить отправленные предметы');
                 setPrizeStatus(offer.game, 2);
@@ -462,7 +470,7 @@ var sendTradeOffer = function(offerJson) {
 						sendProcceed = false;
 					});
 					console.tag('Бот #' + bot_id).info('Обмен #' + response.tradeofferid + ' отправлен!');
-                    AcceptMobileOffer();
+                    //AcceptMobileOffer();
 				});
 			} else {
 				console.tag('Бот #' + bot_id).notice('Нечего отправлять!');
@@ -505,29 +513,27 @@ var checkedOffersProcceed = function(offerJson) {
 					steamOffers.getOffer({
 						tradeOfferId: offer.offerid
 					}, function(err, body) {
-                        if(body.response){
-                            if(body.response.offer){
-                                var offerCheck = body.response.offer;
-                                if (offerCheck.trade_offer_state == 2) {
-                                    checkedProcceed = false;
-                                    console.tag('Бот #' + bot_id).info("Обмен #" + offer.offerid + ' активен');
-                                    return;
-                                }
-                                if (offerCheck.trade_offer_state == 3) {
-                                    redisClient.multi([
-                                        ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
-                                        ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
-                                        ["rpush", redisChannels.betsList, offerJson],
-                                        ["lrem", redisChannels.checkedList, 0, offerJson]
-                                    ]).exec(function(err, replies) {checkedProcceed = false;});
-                                } else {
-                                    console.tag('Бот #' + bot_id).info("Обмен #" + offer.offerid + ' не действителен');
-                                    redisClient.multi([
-                                        ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
-                                        ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
-                                        ["lrem", redisChannels.checkedList, 0, offerJson]
-                                    ]).exec(function(err, replies) {checkedProcceed = false;});
-                                }
+                        if(body && body.response && body.response.offer){
+                            var offerCheck = body.response.offer;
+                            if (offerCheck.trade_offer_state == 2) {
+                                checkedProcceed = false;
+                                console.tag('Бот #' + bot_id).info("Обмен #" + offer.offerid + ' активен');
+                                return;
+                            }
+                            if (offerCheck.trade_offer_state == 3) {
+                                redisClient.multi([
+                                    ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
+                                    ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
+                                    ["rpush", redisChannels.betsList, offerJson],
+                                    ["lrem", redisChannels.checkedList, 0, offerJson]
+                                ]).exec(function(err, replies) {checkedProcceed = false;});
+                            } else {
+                                console.tag('Бот #' + bot_id).info("Обмен #" + offer.offerid + ' не действителен');
+                                redisClient.multi([
+                                    ["lrem", redisChannels.tradeoffersList, 0, offer.offerid],
+                                    ["lrem", redisChannels.usersQueue, 1, offer.steamid64],
+                                    ["lrem", redisChannels.checkedList, 0, offerJson]
+                                ]).exec(function(err, replies) {checkedProcceed = false;});
                             }
                         }
 					});
@@ -547,20 +553,31 @@ var declineOffersProcceed = function(offerid) {
             declineProcceed = false;
         } else {
             makeErr();
-            console.tag('Бот #' + bot_id).error('Ошибка. Не можем отклонить обмен #' + offer.offerid);
+            console.tag('Бот #' + bot_id).error('Ошибка. Не можем отклонить обмен #' + offerid);
             declineProcceed = false;
         }
     });
 }
 function AcceptMobileOffer() {
 	if (WebSession){
-		steamConfirmations.FetchConfirmations((function(err, confirmations) {
-			if (err){setTimeout(AcceptMobileOffer, 8000);return;}
-			if (!confirmations.length) return;
-            console.tag('Бот #' + bot_id).info('Ожидает подтверждения: ' + confirmations.length);
-            steamConfirmations.AcceptConfirmation(confirmations[0], (function(err, result) {if (err) return;}).bind(this));
-		}).bind(this));
-	}
+        //if(!MobileConf){
+            //MobileConf = true;
+            steamConfirmations.FetchConfirmations((function(err, confirmations) {
+                if (err){
+                    //MobileConf = false;
+                    return;
+                }
+                if (!confirmations.length){
+                    //MobileConf = false;
+                    return;
+                }
+                console.tag('Бот #' + bot_id).info('Ожидает подтверждения: ' + confirmations.length);
+                steamConfirmations.AcceptConfirmation(confirmations[0], (function(err, result) {
+                    //MobileConf = false;
+                }).bind(this));
+            }).bind(this));
+        }
+    }
 }
 var is_checkingOfferExists = function(tradeofferid) {
     for (var i = 0, len = checkingOffers.length; i < len; ++i) {
