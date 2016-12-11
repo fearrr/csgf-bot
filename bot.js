@@ -52,7 +52,6 @@ var checkingOffers = [],
     errCount = 0,
     lastBetTime = Date.now(),
     parseItemsProcceed = false,
-    delayForNewGame = false,
     checkedProcceed = false,
     declineProcceed = false,
     checkProcceed = false,
@@ -169,7 +168,7 @@ steamUser.on('tradeOffers', function(number) {
 });
 // Initialisong intervals
 var Queue = setInterval(function(){queueProceed();}, 3000),
-    WorkCheck = setInterval(function(){checkWorking()}, 30000),
+    WorkCheck = setInterval(function(){checkWorking()}, 5000),
     Accepter = setInterval(function(){AcceptMobileOffer()}, 10000);
 // Queue Interval
 var queueProceed = function() {
@@ -232,10 +231,17 @@ var queueProceed = function() {
 }
 // bot main functions
 function checkWorking(){
-    if((Date.now() - lastBetTime) >= (config.timers.noActiveBot * 1000)) steamLogin();
+    if(((Date.now() - lastBetTime)/1000) >= config.timers.noActiveBot ){
+        lastBetTime = Date.now();
+        if(!parseItemsProcceed && !checkedProcceed && !declineProcceed && !checkProcceed && !betsProcceed && !sendProcceed && !handleOff){
+            steamClient.disconnect();
+            steamLogin();
+        }
+    }
 }
 function handleOffers() {
     if (WebSession && !handleOff){
+        lastBetTime = Date.now();
         handleOff = true;
         steamOffers.getOffers({
             get_received_offers: 1,
@@ -517,7 +523,6 @@ var checkedOffersProcceed = function(offerJson) {
                                     ["lrem", redisChannels.checkedList, 0, offerJson]
                                 ]).exec(function(err, replies) {
                                     checkedProcceed = false;
-                                    lastBetTime = Date.now();
                                     Client.publish(redisChannels.queue, '' , function(err, data){});
                                 });
                             } else {
