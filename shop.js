@@ -451,7 +451,7 @@ var sendTradeOffer = function(offerJson) {
 
 var checkOfferForExpired = function (offer) {
     offers.getOffer({tradeOfferId: offer}, function (err, body) {
-        if (body.response.offer) {
+        if (body && body.response && body.response.offer) {
             var offerCheck = body.response.offer;
             if (offerCheck.trade_offer_state == 2) {
                 var timeCheck = Math.floor(Date.now() / 1000) - offerCheck.time_created;

@@ -4,10 +4,12 @@ Config file
 var accounts = require('./accounts.js');
 var config = {
     timers:{
-        check_steam_status: 30,     // Check Steam Status interval
+        check_steam_status: 120,    // Check Steam Status interval
         give_out_timer: 900,        // Give out interval nick check
         price_update_timer: 10800,  // Price update timer
-        timeForCancelOffer: 1800    // Time for cancel trade    
+        timeForCancelOffer: 1800,   // Time for cancel trade
+        checkBrokenGamesTime: 900,  // Time for check broken games
+        noActiveBot: 600,           // Time for bot session without trades
     },
     web:{
         secretKey: 'Fzrc6bu0y7XTl74W8L',    // Provided to prevent HackingAttemps

@@ -16,3 +16,16 @@ function getOutNames() {
 		console.tag('Раздача').log('Ошибка [getOutNames]');
 	});
 }
+
+checkBroken();
+setInterval(checkBroken, 1000 * config.timers.checkBrokenGamesTime);
+
+function checkBroken() {
+    requestify.post('http://' + config.web.domain + '/api/checkBrokenGames', {
+        secretKey: config.web.secretKey
+    }).then(function (response) {
+		console.tag('Боты').log('Трейды переотправлены');
+	}, function (response) {
+		console.tag('Боты').log('Ошибка [checkBroken]');
+	});
+}

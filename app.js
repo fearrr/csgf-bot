@@ -58,8 +58,13 @@ redisClient.subscribe(redisChannels.app_log);
 redisClient.subscribe(redisChannels.depositDecline);
 redisClient.setMaxListeners(0);
 redisClient.on("message", function (channel, message) {
-    if (channel == redisChannels.depositDecline || channel == redisChannels.queue) {
+    if (channel == redisChannels.depositDecline) {
         io.sockets.emit(channel, message);
+    }
+    if (channel == redisChannels.queue) {
+        client.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
+            io.sockets.emit(redisChannels.queue, queues);
+        });
     }
 	if (channel == redisChannels.out_new) {
         io.sockets.emit(channel, message);
@@ -263,7 +268,6 @@ function startTimer() {
         }
     }, 1000);
 }
-
 function getCurrentGame() {
     requestify.post('http://' + config.web.domain + '/api/getCurrentGame', {
         secretKey: config.web.secretKey
@@ -392,6 +396,7 @@ var checkNewBet = function() {
         }
     }, function(response) {
         console.tag('Проверка').log('Не можем отправить новую ставку. Retry...');
+        console.log(response);
         setTimeout(function() {
             checkNewBet()
         }, 1000);

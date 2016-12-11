@@ -10,6 +10,7 @@ var redis_conf = {
     channels:{
         app: {
             show_winners: 'show.winners',
+            depositDecline: 'depositDecline',
             queue: 'queue',
             ctime: 'ctime',
             dice: 'dice',
@@ -22,7 +23,7 @@ var redis_conf = {
             newDeposit: 'newDeposit',
             msgChannel: 'msgChannel',
             app_log: 'app_log',
-            depositDecline: 'depositDecline'
+            usersQueue: 'usersQueue.list'
         },
         bot: {
             betsList: 'bets.list',
@@ -35,8 +36,9 @@ var redis_conf = {
                     sendOffersList: 'b' + bot_id + '_send.offers.list',
                     tradeoffersList: 'b' + bot_id + '_tradeoffers.list',
                     declineList: 'b' + bot_id + '_decline.list',
+                    usersQueue: 'usersQueue.list',
                     betsList: 'bets.list',
-                    usersQueue: 'usersQueue.list'
+                    queue: 'queue'
                 }
                 return channels;
             }

@@ -13,6 +13,13 @@ var accounts = {  // your bots data
             password: 'i21k19Sv650817',
             secret: '02hSwEw9JnvijXES4wtmO1TbvnY=',
             identity_secret: 'K6Sq8poaDAZxiXTysLpLVfg/3iU='
+        },
+        2: {
+            steamid: '76561198210895663',
+            username: '544t4t',
+            password: 'i21k19Sv650817',
+            secret: '32kukrOEzVI9qMV2oqPWD4TMxIk=',
+            identity_secret: 'Ndvh8e5fo2CzGJIlLoJmPyebbbo='
         }
     },
     shop:{

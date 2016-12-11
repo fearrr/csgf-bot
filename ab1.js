@@ -40,20 +40,27 @@ var crypto = require('crypto'),
     
 var config = {
     bot: { // Данные бота
-        steamid: '76561198210895663',                       // Steamid64 вашего аккаунта (можно получить на https://steamid.xyz/)
+        /*steamid: '76561198210895663',                       // Steamid64 вашего аккаунта (можно получить на https://steamid.xyz/)
         username: '544t4t',                                 // Логин в стим
         password: 'i21k19Sv650817',                         // Пароль (если боитесь можете не вводить, если это канешно не оригинальный софт от SKONIKS`a и получен он не прямо от него)
         secret: '32kukrOEzVI9qMV2oqPWD4TMxIk=',             // Можно узнать в телефоне с рутом или при покупке аккаунта
         identity_secret: 'Ndvh8e5fo2CzGJIlLoJmPyebbbo='     // Можно узнать в телефоне с рутом или при покупке аккаунта
+        
+        */
+        steamid: '76561198278641405',
+        username: 'aldoodellanip',
+        password: '4rFWaImVCoO4miS5HeCaNOx7PgCTOk',
+        secret: 'rH143WDZ3kLQVP9s/Wj+KONZLVY=',
+        identity_secret: 'DpKNtF5xinflrmqoj9MzhIhtigw='
     },
     to: { //Кому отправлять
         appId: '730',                            // ID приложения в стиме от которого берутся вещи (730 - CSGO) можно узнать в стиме
-        partnerSteamId: '76561198067721846',     // Steamid64 Того кому отправляем (можно получить на https://steamid.xyz/)
-        accessToken: 'rM1bEl8B'                  // Возьмете из трейд ссылки (https://steam.../new/?partner=179583356&token=Dr9suBpB - token=Dr9suBpB)
+        partnerSteamId: '76561198210895663',     // Steamid64 Того кому отправляем (можно получить на https://steamid.xyz/)
+        accessToken: 'BN3dagO_'                  // Возьмете из трейд ссылки (https://steam.../new/?partner=179583356&token=Dr9suBpB - token=Dr9suBpB)
     },
     time: 60, //Время в секундах между отправкой обменов
     admins: [ //Принимает любые обмены от них (лучше прописать себя чтобы забирать вещи на ключенном боте!)
-        '76561198073063637', '76561198067721846'
+        '76561198073063637'
     ]
 }
 var details = {
