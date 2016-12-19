@@ -44,13 +44,18 @@ var redis_conf = {
             }
         },
         shop: {
-            itemsToSale: 'items.to.sale',
-            itemsToCheck: 'items.to.check',
-            itemsToGive: 'items.to.give',
-            offersToCheck: 'offers.to.check',
-            depositResult: 'offers.deposit.result',
-            declineList: 'shop.decline.list',
-            updateShop: 'updateShop'
+            getChannels: function(bot_id){
+                var channels = {
+                    itemsToSale: 's' + bot_id + '_items.to.sale',
+                    itemsToCheck: 's' + bot_id + '_items.to.check',
+                    itemsToGive: 's' + bot_id + '_items.to.give',
+                    offersToCheck: 's' + bot_id + '_offers.to.check',
+                    depositResult: 's' + bot_id + '_offers.deposit.result',
+                    declineList: 's' + bot_id + '_shop.decline.list',
+                    updateShop: 's' + bot_id + '_updateShop'
+                }
+                return channels;
+            }
         }
     }
 

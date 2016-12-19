@@ -29,6 +29,13 @@ var accounts = {  // your bots data
             password: 'skonik16',
             secret: 'cyvp4RIJY6G9rlgJ+vO0XP0HmGE=',
             identity_secret: 'kxuhUWH+COaJ8ewQYA5SD8E4loo='
+        },
+        1: {
+            steamid: '76561198293151600',
+            username: 'amamasmananiare',
+            password: 'O5tKR8mX3arYi7sk1FslnzgfECZek0',
+            secret: 'lxPShyiV5Sus88yLXoxlB9Nd8Fk=',
+            identity_secret: 'jgcIS9FqjvS5peAEGdDwlKxGANY='
         }
     }
 }

@@ -9,7 +9,7 @@ var config = {
         price_update_timer: 10800,  // Price update timer
         timeForCancelOffer: 1800,   // Time for cancel trade
         checkBrokenGamesTime: 900,  // Time for check broken games
-        noActiveBot: 600,           // Time for bot session without trades
+        noActiveBot: 300,           // Time for bot session without trades
     },
     web:{
         secretKey: 'Fzrc6bu0y7XTl74W8L',    // Provided to prevent HackingAttemps
@@ -17,6 +17,7 @@ var config = {
         nameSite: 'http://csgf.ru/'        // Shown when buying or winnig something
     },
     steam:{
+        appid: 730,
         apiKey: 'A1B9C023D3EC63BB68A28155AE24629B'
     },
     admins: admins(),
