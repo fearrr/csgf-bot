@@ -74,6 +74,7 @@ var itemsToSaleProcced = false,
     declineProcceed = false,
     checkProcceed = false,
     sendProcceed = false,
+    itemStatus = false,
     WebSession = false,
     handleOff = false,
     steamConfirmations,
@@ -191,6 +192,13 @@ var Queue = setInterval(function(){queueProceed();}, 3000),
     Accepter = setInterval(function(){AcceptMobileOffer()}, 10000);
 // Queue Interval
 var queueProceed = function() {
+    redisClient.llen(redisChannels.updateStatus, function (err, length) {
+        if (length > 0 && !itemStatus) {
+            console.tag('Шоп #' + bot_id).info('Ожидает статуса:' + length);
+            itemStatus = true;
+            setItemStatusReq();
+        }
+    });
     redisClient.llen(redisChannels.itemsToSale, function (err, length) {
         if (length > 0 && !itemsToSaleProcced) {
             console.tag('Шоп #' + bot_id).info('Ожидает добавления:' + length);
@@ -343,6 +351,7 @@ function handleOffers() {
 								});
 							}
                             if (!error || ECode == 16 || ECode == 11) {
+                                console.tag('Шоп #' + bot_id).notice('Обмен принят #' + offer.tradeofferid + ' Проверяем на наличие');
 								setTimeout(function(){
 									if ('undefined' == typeof traderesponse){
                                         console.tag('Шоп #' + bot_id).error('Не смогли принять #' + offer.tradeofferid);
@@ -397,10 +406,13 @@ function handleOffers() {
                                                         }
                                                     }
                                                 });
+                                                redisClient.rpush(redisChannels.itemsToSale, JSON.stringify(itemsForSale));
+                                                console.tag('Шоп #' + bot_id).notice('Обмен засчитан #' + offer.tradeofferid);
                                             });
-                                            redisClient.rpush(redisChannels.itemsToSale, JSON.stringify(itemsForSale));
-                                            handleOff=false;
+                                        } else {
+                                            console.tag('Шоп #' + bot_id).error('Не смогли принять #' + offer.tradeofferid);
                                         }
+                                        handleOff=false;
                                     });
 								}, 15000);
                             }
@@ -503,7 +515,7 @@ var sendTradeOffer = function(offerJson) {
                             redisClient.lrem(redisChannels.itemsToGive, 0, offerJson); 
                             sendProcceed = false;
                         }
-                        setItemStatus(JSON.stringify(offer.items), 4);
+                        setItemStatus(offer.items, 4);
                         sendProcceed = false;
                     });
                     sendProcceed = false;
@@ -517,8 +529,8 @@ var sendTradeOffer = function(offerJson) {
                                 num++; 
                             }
                         }
-                        setItemStatus(JSON.stringify(nfitems), 2); 
-                        setItemStatus(JSON.stringify(itemsFromMeObj), 3);
+                        setItemStatus(nfitems, 2); 
+                        setItemStatus(itemsFromMeObj, 3);
                         console.tag('Шоп #' + bot_id).log('Обмен #' + response.tradeofferid + ' Отправлен!');
                         redisClient.rpush(redisChannels.offersToCheck, response.tradeofferid);
                     });
@@ -526,7 +538,7 @@ var sendTradeOffer = function(offerJson) {
             });
         } else {
             console.tag('Шоп #' + bot_id).info('Предметы не найдены!');
-            setItemStatus(JSON.stringify(offer.items), 2);
+            setItemStatus(offer.items, 2);
             redisClient.lrem(redisChannels.itemsToGive, 0, offerJson, function (err, data) { sendProcceed = false; });
         }
     });
@@ -554,7 +566,7 @@ var checkOfferForExpired = function (offer) {
                         titems.push(offerCheck.items_to_give[i].assetid);
 
 					}
-                    setItemStatus(JSON.stringify(titems), 0);
+                    setItemStatus(titems, 0);
                 } else {
                     checkProcceed = false;
                 }
@@ -713,20 +725,24 @@ function AcceptMobileOffer() {
         }).bind(this));
     }
 }
-var setItemStatus = function (item, status) {
+var setItemStatus = function (items, status) {
+    var response = {
+        'status': status,
+        'items': items
+    }
+    redisClient.rpush(redisChannels.updateStatus, JSON.stringify(response));
+}
+var setItemStatusReq = function () {
     requestify.post('http://' + config.web.domain + '/api/shop/setItemStatus', {
         secretKey: config.web.secretKey,
-        id: item,
-        status: status,
         bot_id: bot_id
-    }).then(function (response) {}, function (response) {
+    }).then(function (response) {itemStatus = false;}, function (response) {
 		console.tag('Шоп #' + bot_id).error('Something wrong with setItemStatus. Retry...');
 		setTimeout(function () {
-			setItemStatus()
+			setItemStatusReq()
 		}, 1000);
 	});
 }
-
 var addNewItems = function () {
     requestify.post('http://' + config.web.domain + '/api/shop/newItems', {
         secretKey: config.web.secretKey,

@@ -1,7 +1,4 @@
-var auth = require('http-auth'),
-    scribe = require('scribe-js')(),
-    console = process.console,
-    config = require('./config/config.js'),
+var config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
     default_conf = require('./config/default.js'),
     socket_conf = require('./config/socket.js'),
@@ -11,7 +8,15 @@ var auth = require('http-auth'),
     redis = require('redis'),
     fs = require('fs'),
     mysql = require('mysql'),
-    requestify = require('requestify');
+    requestify = require('requestify'),
+    scribe = require('scribe-js')({createDefaultConsole: false}),
+    console = scribe.console({console : {logInConsole: true},createBasic : false});
+
+console.addLogger('notice', 'grey');
+console.addLogger('info', 'cyan');
+console.addLogger('log', 'white');
+console.addLogger('error', 'red');
+process.console = console;
 
 var users = [];
 if(redis_conf.unix){

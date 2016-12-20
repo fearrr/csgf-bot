@@ -52,7 +52,8 @@ var redis_conf = {
                     offersToCheck: 's' + bot_id + '_offers.to.check',
                     depositResult: 's' + bot_id + '_offers.deposit.result',
                     declineList: 's' + bot_id + '_shop.decline.list',
-                    updateShop: 's' + bot_id + '_updateShop'
+                    updateShop: 's' + bot_id + '_updateShop',
+                    updateStatus: 's' + bot_id + '_items.to.status'
                 }
                 return channels;
             }
