@@ -36,6 +36,13 @@ var accounts = {  // your bots data
             password: 'O5tKR8mX3arYi7sk1FslnzgfECZek0',
             secret: 'lxPShyiV5Sus88yLXoxlB9Nd8Fk=',
             identity_secret: 'jgcIS9FqjvS5peAEGdDwlKxGANY='
+        },
+        2: {
+            steamid: '76561198285366750',
+            username: 'aselleyarourse',
+            password: 'wvsZssxtGDDi1zKl7xN05ctkeYjfMy',
+            secret: 'hFCjzhgtmN4Rdn/lc3Pf7Ag+tCc=',
+            identity_secret: 'x+8MzBTaqlGJ5ZpYDpRerA5iS4M='
         }
     }
 }
