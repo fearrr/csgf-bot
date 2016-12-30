@@ -57,6 +57,7 @@ redisClient.subscribe(redisChannels.coin_new);
 redisClient.subscribe(redisChannels.fuser_add);
 redisClient.subscribe(redisChannels.fuser_del);
 redisClient.subscribe(redisChannels.fuser_delall);
+redisClient.subscribe(redisChannels.fuser_delone);
 redisClient.subscribe(redisChannels.newDeposit);
 redisClient.subscribe(redisChannels.msgChannel);
 redisClient.subscribe(redisChannels.app_log);
@@ -127,6 +128,16 @@ redisClient.on("message", function (channel, message) {
 	if (channel == redisChannels.fuser_delall) {
 		for(var key in users){
 			if (key == users[key].user.steamid64){
+				io.sockets.emit('online_del', users[key].user);
+				delete users[key];
+			}
+		}
+    }
+    if (channel == redisChannels.fuser_delone) {
+        var dd = false;
+		for(var key in users){
+			if ((key == users[key].user.steamid64) && !dd){
+                dd = true;
 				io.sockets.emit('online_del', users[key].user);
 				delete users[key];
 			}
@@ -404,7 +415,7 @@ var checkNewBet = function() {
         console.log(response);
         setTimeout(function() {
             checkNewBet()
-        }, 1000);
+        }, 4000);
     });
 }
 setInterval(checkSteamInventoryStatus, 1000 * config.timers.check_steam_status);
