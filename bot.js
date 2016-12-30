@@ -234,10 +234,10 @@ var queueProceed = function() {
 // bot main functions
 function checkWorking(){
     if(((Date.now() - lastBetTime)/1000) >= config.timers.noActiveBot ){
-        lastBetTime = Date.now();
         if(!parseItemsProcceed && !checkedProcceed && !declineProcceed && !checkProcceed && !betsProcceed && !sendProcceed && !handleOff){
             steamClient.disconnect();
             steamLogin();
+            lastBetTime = Date.now();
         }
     }
 }
