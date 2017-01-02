@@ -238,7 +238,11 @@ io.sockets.on('connection', function(socket) {
     },1000);
 	socket.on('disconnect', function() {
         delete users[socket.id];
-		if (user) io.sockets.emit('online_del', user);
+        if (user){
+			var h = false;
+            for(key in users) if (users[key].user.steamid64 == user.steamid64) h = true;
+            if (!h) io.sockets.emit('online_del', user);
+		}
 	})
 });
 
