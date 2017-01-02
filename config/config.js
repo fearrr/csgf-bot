@@ -3,6 +3,12 @@ Config file
 */
 var accounts = require('./accounts.js');
 var config = {
+    graphite:{
+        host: 'alpha.mh00.net', // graphite server host or ip 
+        port: 2003, // graphite server udp port
+        verbose: false,
+        prefix: 'csgf'
+    },
     timers:{
         check_steam_status: 120,    // Check Steam Status interval
         give_out_timer: 900,        // Give out interval nick check

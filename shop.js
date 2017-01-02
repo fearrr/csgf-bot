@@ -252,15 +252,15 @@ var queueDep = function() {
             if (answer.success) {
                 var trades = answer.trades;
                 if(trades.length > 0){
-                    console.tag('Шоп #' + bot_id).info('Проверяем депозиты');
+                    console.tag('Шоп #' + bot_id).info('Депозитов для проверки: ' + trades.length);
                     var i = 0;
                     trades.forEach(function(trade) {
                         i = i + depCheckOffer(trade);
                     });
                     var checkInt = setInterval(function(){
                         if(trades.length >= i) {
-                            setTimeout(checkDepositComplete,10000);
                             clearInterval(checkInt);
+                            checkDepositComplete();
                         }
                     },1000);
                 } else {
@@ -645,67 +645,71 @@ var MyInvToSite = function() {
 };
 var depCheckOffer = function(deposit_id) {
     console.tag('Шоп #' + bot_id).info('Проверяем обмен: #' + deposit_id);
-    steamOffers.getOffer({
-        tradeOfferId: deposit_id
-    }, function(err, body) {
-        if(!body.response) return 1;
-        if(body.response.offer){
-            var offer = body.response.offer;
-            if(offer.trade_offer_state == 3){
-                var ritems = offer.items_to_receive,
-                depItems = [],
-                ritems_classid = [],
-                siteitems_id = [];
-                requestify.post('http://' + config.web.domain + '/api/shop/itemlist', {
-                    secretKey: config.web.secretKey
-                }).then(function (response) {
-                    var answer = JSON.parse(response.body);
-                    if (answer.success) {
-                        var sitems = answer.items;
-                        ritems.forEach(function (item) { ritems_classid.push(item.classid); });
-                        sitems.forEach(function (item) { siteitems_id.push(item); });
-                        steamOffers.loadMyInventory({ appId: config.steam.appid, contextId: 2, language: 'russian' }, function (error, items) {
-                            if (!error) {
-                                var i = 0; items.forEach(function (item) {
-                                    if ((ritems_classid.indexOf(item.classid) != -1) && (siteitems_id.indexOf(item.id) == -1) && item.tradable) {
-                                        var rarity = '', type = '', arr = item.type.split(','); if (arr.length == 2) rarity = arr[1].trim(); if (arr.length == 3) rarity = arr[2].trim(); if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
-                                        if (arr.length) type = arr[0]; var quality = item.market_name.match(/\(([^()]*)\)/); if (quality != null && quality.length == 2) quality = quality[1];
-                                        depItems[i++] = { inventoryId: item.id, classid: item.classid, name: item.name, bot_id: bot_id, appid: item.appid, market_hash_name: item.market_hash_name, rarity: rarity, quality: quality, type: type }
-                                    }
-                                });
-                                var result = { id: deposit_id, status: 1, items: depItems };
+    try {
+        steamOffers.getOffer({
+            tradeOfferId: deposit_id
+        }, function(err, body) {
+            if(!body.response) return 1;
+            if(body.response.offer){
+                var offer = body.response.offer;
+                if(offer.trade_offer_state == 3){
+                    var ritems = offer.items_to_receive,
+                    depItems = [],
+                    ritems_classid = [],
+                    siteitems_id = [];
+                    requestify.post('http://' + config.web.domain + '/api/shop/itemlist', {
+                        secretKey: config.web.secretKey,
+                        bot_id: bot_id
+                    }).then(function (response) {
+                        var answer = JSON.parse(response.body);
+                        if (answer.success) {
+                            var sitems = answer.items;
+                            ritems.forEach(function (item) { ritems_classid.push(item.classid); });
+                            sitems.forEach(function (item) { siteitems_id.push(item); });
+                            steamOffers.loadMyInventory({ appId: config.steam.appid, contextId: 2, language: 'russian' }, function (error, items) {
+                                if (!error) {
+                                    var i = 0; items.forEach(function (item) {
+                                        if ((ritems_classid.indexOf(item.classid) != -1) && (siteitems_id.indexOf(item.id) == -1) && item.tradable) {
+                                            var rarity = '', type = '', arr = item.type.split(','); if (arr.length == 2) rarity = arr[1].trim(); if (arr.length == 3) rarity = arr[2].trim(); if (arr.length && arr[0] == 'Нож') rarity = 'Тайное';
+                                            if (arr.length) type = arr[0]; var quality = item.market_name.match(/\(([^()]*)\)/); if (quality != null && quality.length == 2) quality = quality[1];
+                                            depItems[i++] = { inventoryId: item.id, classid: item.classid, name: item.name, bot_id: bot_id, appid: item.appid, market_hash_name: item.market_hash_name, rarity: rarity, quality: quality, type: type }
+                                        }
+                                    });
+                                    var result = { id: deposit_id, status: 1, items: depItems };
+                                    redisClient.rpush(redisChannels.depositResult, JSON.stringify(result), function(){
+                                        console.tag('Шоп #' + bot_id).log('Обмен #' + deposit_id + ' засчитан');
+                                    });
+                                }
+                            });
+                        }
+                    }, function (response) { console.tag('Шоп #' + bot_id).error('Something wrong with get items list.'); });
+                } else if(offer.trade_offer_state == 2){
+                    var timeCheck = Math.floor(Date.now() / 1000) - offer.time_created;
+                    if (timeCheck >= config.timers.timeForCancelOffer) {
+                        steamOffers.cancelOffer({tradeOfferId: deposit_id}, function (err, response) {
+                            if (!err) {
+                                var result = { id: deposit_id, status: 0 };
                                 redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                                console.tag('Шоп #' + bot_id).log('Обмен #' + deposit_id + ' засчитан');
+                                console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' просрочен');
+                            } else {
+                                var result = { id: deposit_id, status: 2 };
+                                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                                console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' активен');
                             }
                         });
+                    } else {
+                        var result = { id: deposit_id, status: 2 };
+                        redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
+                        console.tag('Шоп #' + bot_id).notice('Обмен #' + deposit_id + ' активен');
                     }
-                }, function (response) { console.tag('Шоп #' + bot_id).error('Something wrong with get items list.'); });
-            } else if(offer.trade_offer_state == 2){
-                var timeCheck = Math.floor(Date.now() / 1000) - offer.time_created;
-                if (timeCheck >= config.timers.timeForCancelOffer) {
-                    steamOffers.cancelOffer({tradeOfferId: deposit_id}, function (err, response) {
-                        if (!err) {
-                            var result = { id: deposit_id, status: 0 };
-                            redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                            console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' просрочен');
-                        } else {
-                            var result = { id: deposit_id, status: 2 };
-                            redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                            console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' активен');
-                        }
-                    });
                 } else {
-                    var result = { id: deposit_id, status: 2 };
+                    var result = { id: deposit_id, status: 0 };
                     redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                    console.tag('Шоп #' + bot_id).notice('Обмен #' + deposit_id + ' активен');
+                    console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' отклонен');
                 }
-            } else {
-                var result = { id: deposit_id, status: 0 };
-                redisClient.rpush(redisChannels.depositResult, JSON.stringify(result));
-                console.tag('Шоп #' + bot_id).info('Обмен #' + deposit_id + ' отклонен');
             }
-        }
-    });
+        });
+    } catch (ex) { console.tag('Шоп #' + bot_id).error('Ошибка:' + ex); }
     return 1;
 }
 function AcceptMobileOffer() {

@@ -10,8 +10,10 @@ var config = require('./config/config.js'),
     mysql = require('mysql'),
     requestify = require('requestify'),
     scribe = require('scribe-js')({createDefaultConsole: false}),
-    console = scribe.console({console : {logInConsole: true},createBasic : false});
-
+    console = scribe.console({console : {logInConsole: true},createBasic : false}),
+    graphite = require('graphite-udp'),
+    metric = graphite.createClient(config.graphite);
+    
 console.addLogger('notice', 'grey');
 console.addLogger('info', 'cyan');
 console.addLogger('log', 'white');
@@ -19,6 +21,26 @@ console.addLogger('error', 'red');
 process.console = console;
 
 var users = [];
+setInterval(function(){
+    var us = [], uc = 0, uf = 0;
+    for(var key in users){
+        if (key != users[key].user.steamid64){
+            if(us.indexOf(users[key].user.steamid64) == -1) us.push(users[key].user.steamid64);
+            uc++;
+        } else {
+            uf++;
+        }
+    }
+    metric.put('users.fake', uf);
+    metric.put('users.sockets', uc);
+    metric.put('users.online', us.length);
+}, 50000);
+var bets_per_m = 0;
+setInterval(function(){
+    metric.put('bets.bpm', bets_per_m);
+    bets_per_m = 0;
+}, 60000);
+
 if(redis_conf.unix){
     var redis_config = {
         'path': redis_conf.path,
@@ -70,6 +92,7 @@ redisClient.on("message", function (channel, message) {
     if (channel == redisChannels.queue) {
         client.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
             io.sockets.emit(redisChannels.queue, queues);
+            //metric.put('bets.queues', queues.length);
         });
     }
 	if (channel == redisChannels.out_new) {
@@ -146,6 +169,7 @@ redisClient.on("message", function (channel, message) {
     if (channel == redisChannels.newDeposit) {
         io.sockets.emit(channel, message);
         message = JSON.parse(message);
+        if(message.bettype == 0) bets_per_m++;
 		game.status = message.gameStatus;
         if (!timerStatus){
 			if (message.gameStatus == 1) {
@@ -153,10 +177,10 @@ redisClient.on("message", function (channel, message) {
 			}
 		} else {
 			var addtime = Math.round(Math.round(message.betprice)/10);
-			if (addtime<50){
+			if (addtime<60){
 				time = time + addtime;
 			} else {
-				time = time + 50;
+				time = time + 60;
 			}
 		}
     }
@@ -172,7 +196,6 @@ redisClient.on("message", function (channel, message) {
 		console.tag('Уведомление').info('Для: ' + mes.steamid + ' M:'+ mes.message);
     }
 });
-
 function updateInformation() {
     requestify.post('http://' + config.web.domain + '/api/update', {
         secretKey: config.web.secretKey
@@ -214,21 +237,8 @@ io.sockets.on('connection', function(socket) {
         socket.emit('update', updateinfo);
     },1000);
 	socket.on('disconnect', function() {
-		if (user){
-			delete users[socket.id];
-			h = false;
-			setTimeout(function(){
-				for(key in users){
-					if (users[key].user.steamid64 == user.steamid64) {
-						h = true;
-					}
-				}
-				if (!h){
-					io.sockets.emit('online_del', user);
-				}
-			},3000);
-		} else {
-		}
+        delete users[socket.id];
+		if (user) io.sockets.emit('online_del', user);
 	})
 });
 
@@ -318,6 +328,7 @@ function showSliderWinners() {
 function startNGTimer(winners) {
 	ngtime = 20;
 	var data = JSON.parse(winners);
+    metric.put('games.price', data.tickets/100);
 	data.showSlider = true;
 	clearInterval(ngtimer);
 	console.tag('Игра').log('Отсчет пошел');
@@ -412,7 +423,6 @@ var checkNewBet = function() {
         }
     }, function(response) {
         console.tag('Проверка').log('Не можем отправить новую ставку. Retry...');
-        console.log(response);
         setTimeout(function() {
             checkNewBet()
         }, 4000);
