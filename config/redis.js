@@ -54,7 +54,8 @@ var redis_conf = {
                     depositResult: 's' + bot_id + '_offers.deposit.result',
                     declineList: 's' + bot_id + '_shop.decline.list',
                     updateShop: 's' + bot_id + '_updateShop',
-                    updateStatus: 's' + bot_id + '_items.to.status'
+                    updateStatus: 's' + bot_id + '_items.to.status',
+                    tempDeposit: 's' + bot_id + '_deposit.temp'
                 }
                 return channels;
             }
