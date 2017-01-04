@@ -20,6 +20,7 @@ var redis_conf = {
             fuser_add: 'fuser_add',
             fuser_del: 'fuser_del',
             fuser_delall: 'fuser_delall',
+            fuser_delone: 'fuser_delone',
             newDeposit: 'newDeposit',
             msgChannel: 'msgChannel',
             app_log: 'app_log',

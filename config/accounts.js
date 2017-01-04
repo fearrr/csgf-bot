@@ -24,11 +24,11 @@ var accounts = {  // your bots data
     },
     shop:{
         0: {
-            steamid: '76561198073063637',
-            username: 'skolya16',
-            password: 'skonik16',
-            secret: 'cyvp4RIJY6G9rlgJ+vO0XP0HmGE=',
-            identity_secret: 'kxuhUWH+COaJ8ewQYA5SD8E4loo='
+            steamid: '76561198260157768',
+            username: 'gaelisevencinc',
+            password: 'BLYKIdz6zN6MohFJjaQCtpyCMjMFez',
+            secret: 'KVB37Vnd9/qgqAtybn218cnoeq0=',
+            identity_secret: 'rcdanS2sYA0+0zESMqu7CrZiKYg='
         },
         1: {
             steamid: '76561198293151600',
