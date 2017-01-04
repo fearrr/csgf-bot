@@ -5,7 +5,6 @@ var SteamTotp = require('steam-totp'),
     console = process.console,
     redis_conf = require('./config/redis.js'),
     config = require('./config/config.js'),
-    sleep = require('sleep'),
     requestify = require('requestify'),
     redis = require('redis');
     
