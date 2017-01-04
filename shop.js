@@ -433,57 +433,64 @@ function handleOffers() {
     }
 }
 app.get('/socket.io/sendTrade/' + bot_id + '/', function (req, res) {
-	if (req.query['secretKey'] == config.web.secretKey && !sendProcceed && WebSession){
-		if(req.query['data']){
-			var offer = JSON.parse(req.query['data']);
-            var assetids = offer.items;
-            assetids = assetids.split(',');
-			console.tag('Шоп #' + bot_id).info('Отправляем обмен для депозта: ' + offer.steamid);
-			var senditems = [];
-			for(var i = 0; i < assetids.length; i++) {
-				if(assetids[i] == "") continue;
-				senditems.push({
-					appid: config.steam.appid,
-					contextid: 2, 
-					assetid: assetids[i]
-				});
-			}
-			var code = makecode();
-			sendProcceed = true;
-			steamOffers.makeOffer({
-				partnerSteamId: offer.steamid,
-				accessToken: offer.accessToken,
-				itemsFromThem: senditems,
-				itemsFromMe: [],
-				message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite
-			}, function(err, r) {
-				if(err) {
-					console.tag('Шоп #' + bot_id).error('Ошибка при отправке трейда' + err.message);
-					sendProcceed = false;
-					res.json({
-						success: false,
-						error: err.toString()
-					});
-				} else {
-                    sendProcceed = false;
-					res.json({
-						success: true,
-						tradeid: r.tradeofferid,
-						code: code
-					});
-				}
-			});
-		} else {
-			res.json({
-				success: false,
-				error: 'Ошибка обработки запроса'
-			});
-		}
+	if (req.query['secretKey'] == config.web.secretKey && WebSession){
+        if(!sendProcceed){
+            if(req.query['data']){
+                var offer = JSON.parse(req.query['data']);
+                var assetids = offer.items;
+                assetids = assetids.split(',');
+                console.tag('Шоп #' + bot_id).info('Отправляем обмен для депозта: ' + offer.steamid);
+                var senditems = [];
+                for(var i = 0; i < assetids.length; i++) {
+                    if(assetids[i] == "") continue;
+                    senditems.push({
+                        appid: config.steam.appid,
+                        contextid: 2, 
+                        assetid: assetids[i]
+                    });
+                }
+                var code = makecode();
+                sendProcceed = true;
+                steamOffers.makeOffer({
+                    partnerSteamId: offer.steamid,
+                    accessToken: offer.accessToken,
+                    itemsFromThem: senditems,
+                    itemsFromMe: [],
+                    message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite
+                }, function(err, r) {
+                    if(err) {
+                        console.tag('Шоп #' + bot_id).error('Ошибка при отправке трейда' + err.message);
+                        sendProcceed = false;
+                        res.json({
+                            success: false,
+                            error: err.toString()
+                        });
+                    } else {
+                        sendProcceed = false;
+                        res.json({
+                            success: true,
+                            tradeid: r.tradeofferid,
+                            code: code
+                        });
+                    }
+                });
+            } else {
+                res.json({
+                    success: false,
+                    error: 'Ошибка обработки запроса'
+                });
+            }
+        } else {
+            res.json({
+                success: false,
+                error: 'Подождите'
+            });
+        }
 	} else {
-		res.json({
-			success: false,
-			error: 'Hacking attemp'
-		});
+        res.json({
+            success: false,
+            error: 'Ошибка доступа'
+        });
 	}
 });
 var sendTradeOffer = function(offerJson) {
