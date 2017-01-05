@@ -74,6 +74,7 @@ redisClient.subscribe(redisChannels.queue);
 redisClient.subscribe(redisChannels.ctime);
 redisClient.subscribe(redisChannels.dice);
 redisClient.subscribe(redisChannels.gifts);
+redisClient.subscribe(redisChannels.view_bet);
 redisClient.subscribe(redisChannels.out_new);
 redisClient.subscribe(redisChannels.coin_scroll);
 redisClient.subscribe(redisChannels.coin_new);
@@ -187,7 +188,7 @@ redisClient.on("message", function (channel, message) {
 			}
 		}
     }
-	if (channel == redisChannels.msgChannel){
+    if (channel == redisChannels.msgChannel){
         var mes = JSON.parse(message);
 		setTimeout(function () {
             for(key in users){
@@ -197,6 +198,17 @@ redisClient.on("message", function (channel, message) {
             }
 		}, 10);
 		console.tag('Уведомление').info('Для: ' + mes.steamid + ' M:'+ mes.message);
+    }
+	if (channel == redisChannels.view_bet){
+        console.tag('New bet').info('Для: ' + mes.steamid + ' M:'+ mes.html);
+        var mes = JSON.parse(message);
+		setTimeout(function () {
+            for(key in users){
+                if(users[key].steamid == mes.steamid){
+                    if(io.sockets.connected[key]) io.sockets.connected[key].emit('view_bet', message);
+                }
+            }
+		}, 10);
     }
 });
 function updateInformation() {
