@@ -448,3 +448,17 @@ var queueProceed = function() {
 var betsProcceed = false;
 
 setInterval(queueProceed, 3000);
+
+setInterval(function(){
+    var us = [];
+    for(var key in users) if ((key != users[key].user.steamid64) && (us.indexOf(users[key].user.id) == -1)) us.push(users[key].user.id);
+    requestify.post('http://' + config.web.domain + '/api/gifts/check', {
+        secretKey: config.web.secretKey,
+        users: us
+    }).then(function(response) {
+        console.tag('Гифты').log('Отправка пользователей на обработку');
+    }, function(response) {
+        console.tag('Гифты').log('Не можем отправить. Retry...');
+    });
+    
+}, 900000);
