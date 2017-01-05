@@ -201,7 +201,6 @@ redisClient.on("message", function (channel, message) {
     }
 	if (channel == redisChannels.view_bet){
         var mes = JSON.parse(message);
-        console.tag('New bet').info('Для: ' + mes.steamid + ' M:'+ mes.html);
 		setTimeout(function () {
             for(key in users){
                 if(users[key].steamid == mes.steamid){
