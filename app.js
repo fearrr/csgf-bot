@@ -187,7 +187,7 @@ redisClient.on("message", function (channel, message) {
 			}
 		}
     }
-	if (channel == redisChannels.msgChannel){
+    if (channel == redisChannels.msgChannel){
         var mes = JSON.parse(message);
 		setTimeout(function () {
             for(key in users){
@@ -197,6 +197,16 @@ redisClient.on("message", function (channel, message) {
             }
 		}, 10);
 		console.tag('Уведомление').info('Для: ' + mes.steamid + ' M:'+ mes.message);
+    }
+	if (channel == redisChannels.view_bet){
+        var mes = JSON.parse(message);
+		setTimeout(function () {
+            for(key in users){
+                if(users[key].steamid == mes.steamid){
+                    if(io.sockets.connected[key]) io.sockets.connected[key].emit('view_bet', message);
+                }
+            }
+		}, 10);
     }
 });
 function updateInformation() {

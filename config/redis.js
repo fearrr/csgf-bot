@@ -25,6 +25,7 @@ var redis_conf = {
             newDeposit: 'newDeposit',
             msgChannel: 'msgChannel',
             app_log: 'app_log',
+            view_bet: 'view_bet',
             usersQueue: 'usersQueue.list'
         },
         bot: {
