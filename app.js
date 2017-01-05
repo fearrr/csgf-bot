@@ -73,6 +73,7 @@ redisClient.subscribe(redisChannels.show_winners);
 redisClient.subscribe(redisChannels.queue);
 redisClient.subscribe(redisChannels.ctime);
 redisClient.subscribe(redisChannels.dice);
+redisClient.subscribe(redisChannels.gifts);
 redisClient.subscribe(redisChannels.out_new);
 redisClient.subscribe(redisChannels.coin_scroll);
 redisClient.subscribe(redisChannels.coin_new);
@@ -92,10 +93,12 @@ redisClient.on("message", function (channel, message) {
     if (channel == redisChannels.queue) {
         client.lrange(redisChannels.usersQueue, 0, -1, function(err, queues) {
             io.sockets.emit(redisChannels.queue, queues);
-            //metric.put('bets.queues', queues.length);
         });
     }
 	if (channel == redisChannels.out_new) {
+        io.sockets.emit(channel, message);
+    }
+    if (channel == redisChannels.gifts) {
         io.sockets.emit(channel, message);
     }	
     if (channel == redisChannels.dice) {

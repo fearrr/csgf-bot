@@ -14,6 +14,7 @@ var redis_conf = {
             queue: 'queue',
             ctime: 'ctime',
             dice: 'dice',
+            gifts: 'gifts',
             out_new: 'out_new',
             coin_scroll: 'coin_scroll',
             coin_new: 'coin_new',
