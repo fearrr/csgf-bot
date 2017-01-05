@@ -2,11 +2,11 @@
 Redis Config file
 */
 var redis_conf = {
-    host: null,
-    port: null,
+    host: '127.0.0.1',
+    port: '6379',
     password: 'g9LzUfRtX5Vnz4Kxb7',
     path: '/run/redis/redis.sock',
-    unix: true,
+    unix: false,
     channels:{
         app: {
             show_winners: 'show.winners',

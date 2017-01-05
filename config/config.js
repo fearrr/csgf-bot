@@ -19,7 +19,7 @@ var config = {
     },
     web:{
         secretKey: 'Fzrc6bu0y7XTl74W8L',    // Provided to prevent HackingAttemps
-        domain: 'csgf.ru',            // Site IP for direct connecion
+        domain: '167.114.232.119',            // Site IP for direct connecion
         nameSite: 'http://csgf.ru/'        // Shown when buying or winnig something
     },
     steam:{
@@ -32,7 +32,7 @@ var config = {
 module.exports = config;
 
 function admins(){
-    var sids = ['76561198073063637', '76561198067721846'];
+    var sids = ['76561198073063637'];
     for (id in accounts.classic) {
         sids.push(accounts.classic[id].steamid);
     }
