@@ -74,6 +74,7 @@ redisClient.subscribe(redisChannels.queue);
 redisClient.subscribe(redisChannels.ctime);
 redisClient.subscribe(redisChannels.dice);
 redisClient.subscribe(redisChannels.gifts);
+redisClient.subscribe(redisChannels.view_bet);
 redisClient.subscribe(redisChannels.out_new);
 redisClient.subscribe(redisChannels.coin_scroll);
 redisClient.subscribe(redisChannels.coin_new);
