@@ -33,7 +33,7 @@ var bot_id = process.argv[2],
                     username: 'karleatrickeni',
                     password: '0jmt5eFUGUdz7MChXkb9EWpVyQ8JT8',
                     secret: 'BrwQDO2UIDYW0aK3AHKf9XplQIs=',
-                    identity_secret: 'OMJ0XZqhhptasESENQ7UOrjOTAs='
+                    identity_secret: 'OMJ0XZqhhptasESENQ7UOrjOTAs=',
                     tradeUrl: 'https://steamcommunity.com/tradeoffer/new/?partner=351099091&token=VtCKQcZ2'
                 },
                 autobet: true,
