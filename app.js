@@ -31,13 +31,13 @@ setInterval(function(){
             uf++;
         }
     }
-    //metric.put('users.fake', uf);
-    //metric.put('users.sockets', uc);
-    //metric.put('users.online', us.length);
+    metric.put('users.fake', uf);
+    metric.put('users.sockets', uc);
+    metric.put('users.online', us.length);
 }, 50000);
 var bets_per_m = 0;
 setInterval(function(){
-    //metric.put('bets.bpm', bets_per_m);
+    metric.put('bets.bpm', bets_per_m);
     bets_per_m = 0;
 }, 60000);
 
@@ -346,7 +346,7 @@ function showSliderWinners() {
 function startNGTimer(winners) {
 	ngtime = 20;
 	var data = JSON.parse(winners);
-    //metric.put('games.price', data.tickets/100);
+    metric.put('games.price', data.tickets/100);
 	data.showSlider = true;
 	clearInterval(ngtimer);
 	console.tag('Игра').log('Отсчет пошел');
