@@ -3,7 +3,8 @@ Config file
 */
 var accounts = require('./accounts.js');
 var config = {
-    graphite:{
+    graphite: false,
+    graphite_conf:{
         host: 'alpha.mh00.net', // graphite server host or ip 
         port: 2003, // graphite server udp port
         verbose: false,

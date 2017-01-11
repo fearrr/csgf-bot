@@ -11,8 +11,8 @@ var config = require('./config/config.js'),
     requestify = require('requestify'),
     scribe = require('scribe-js')({createDefaultConsole: false}),
     console = scribe.console({console : {logInConsole: true},createBasic : false}),
-    graphite = require('graphite-udp'),
-    metric = graphite.createClient(config.graphite);
+    graphite = require('graphite-udp');
+if(config.graphite) var metric = graphite.createClient(config.graphite_conf);
     
 console.addLogger('notice', 'grey');
 console.addLogger('info', 'cyan');
@@ -31,13 +31,13 @@ setInterval(function(){
             uf++;
         }
     }
-    metric.put('users.fake', uf);
-    metric.put('users.sockets', uc);
-    metric.put('users.online', us.length);
+    if(config.graphite) metric.put('users.fake', uf);
+    if(config.graphite) metric.put('users.sockets', uc);
+    if(config.graphite) metric.put('users.online', us.length);
 }, 50000);
 var bets_per_m = 0;
 setInterval(function(){
-    metric.put('bets.bpm', bets_per_m);
+    if(config.graphite) metric.put('bets.bpm', bets_per_m);
     bets_per_m = 0;
 }, 60000);
 
@@ -346,7 +346,7 @@ function showSliderWinners() {
 function startNGTimer(winners) {
 	ngtime = 20;
 	var data = JSON.parse(winners);
-    metric.put('games.price', data.tickets/100);
+    if(config.graphite) metric.put('games.price', data.tickets/100);
 	data.showSlider = true;
 	clearInterval(ngtimer);
 	console.tag('Игра').log('Отсчет пошел');
