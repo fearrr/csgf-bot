@@ -1,7 +1,4 @@
-var auth = require('http-auth'),
-    scribe = require('scribe-js')(),
-    console = process.console,
-    config = require('./config/config.js'),
+var config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
     socket_conf = require('./config/socket.js'),
     app = require('express')(),
@@ -10,8 +7,7 @@ var auth = require('http-auth'),
     redis = require('redis'),
     fs = require('fs'),
     requestify = require('requestify');
-
-    
+console = process.console; 
 if(redis_conf.unix){
     var redis_config = {
         'path': redis_conf.path,
@@ -20,8 +16,7 @@ if(redis_conf.unix){
 } else {
     var redis_config = {
         'host': redis_conf.host,
-        'port': redis_conf.port,
-        'password': redis_conf.password
+        'port': redis_conf.port
     }
 }
 
@@ -31,10 +26,10 @@ if(socket_conf.unix){
     if ( fs.existsSync(socket_conf.ports.chat.path) ) { fs.unlinkSync(socket_conf.ports.chat.path); }
     process.umask(socket_conf.procumask);
     server.listen(socket_conf.ports.chat.path);
-    console.log('APP started on ' + socket_conf.ports.chat.path);
+    console.log('CHAT started on ' + socket_conf.ports.chat.path);
 } else {
     server.listen(socket_conf.ports.chat.port, socket_conf.host);
-    console.log('APP started on ' + socket_conf.host + ':'  + socket_conf.ports.chat.port);
+    console.log('CHAT started on ' + socket_conf.host + ':'  + socket_conf.ports.chat.port);
 }
 
 redisClient.setMaxListeners(0);

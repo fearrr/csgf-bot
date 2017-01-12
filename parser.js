@@ -2,12 +2,12 @@ var SteamTotp = require('steam-totp'),
     fs = require('fs'),
     SteamAuthLoad = require('node-steam-url-load'),
     scribe = require('scribe-js')(),
-    console = process.console,
     redis_conf = require('./config/redis.js'),
     config = require('./config/config.js'),
     requestify = require('requestify'),
     redis = require('redis');
     
+console = process.console;
 var UrlLoad = new SteamAuthLoad();
 
 if(redis_conf.unix){

@@ -61,14 +61,7 @@ var bot_id = process.argv[2],
         time: 120,
         admins: ['76561198073063637']
     },
-    scribe = require('scribe-js')({createDefaultConsole: false}),
-    console = scribe.console({console : {logInConsole: true},createBasic : false});
-console.addLogger('notice', 'grey');
-console.addLogger('info', 'cyan');
-console.addLogger('log', 'white');
-console.addLogger('error', 'red');
-console.addLogger('warn', 'green');
-process.console = console;
+    console = process.console;
 var crypto = require('crypto'),
     fs = require('fs'),
     Steam = require('steam'),
@@ -177,7 +170,7 @@ function makeErr() {
 // Auth Mobile key generation
 function generatekey(secret) {
     code = SteamTotp.generateAuthCode(secret);
-	console.tag('Бот #' + config.accounts[bot_id].account.username).info('Код Авторизации : ' + code);
+	console.tag('Бот #' + config.accounts[bot_id].account.username).log('Код Авторизации : ' + code);
     return code;
 }
 // Err code parser
@@ -212,7 +205,7 @@ function handleOffers() {
             body.response.trade_offers_received.forEach(function(offer) {
                 if(offer.trade_offer_state == 2) {
                     if((offer.items_to_give == null && offer.items_to_receive != null)  || (config.admins.indexOf(offer.steamid_other) != -1)) {
-                        console.tag('Бот #' + config.accounts[bot_id].account.username).notice('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other);
+                        console.tag('Бот #' + config.accounts[bot_id].account.username).log('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other);
                         steamOffers.acceptOffer({
                             tradeOfferId: offer.tradeofferid
                         }, function(error, traderesponse) {
@@ -257,7 +250,7 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken) {
                     console.tag('Бот #' + config.accounts[bot_id].account.username).warn('Обмен #' + response.tradeofferid + ' отправлен!');
                 });
             } else {
-                console.tag('Бот #' + config.accounts[bot_id].account.username).notice('Инвентарь пуст!');
+                console.tag('Бот #' + config.accounts[bot_id].account.username).log('Инвентарь пуст!');
             }
         });
     }
@@ -267,7 +260,7 @@ function AcceptMobileOffer() {
 		steamConfirmations.FetchConfirmations((function(err, confirmations) {
 			if (err){setTimeout(AcceptMobileOffer, 8000);return;}
 			if (!confirmations.length) return;
-            console.tag('Бот #' + config.accounts[bot_id].account.username).notice('Ожидает подтверждения: ' + confirmations.length);
+            console.tag('Бот #' + config.accounts[bot_id].account.username).log('Ожидает подтверждения: ' + confirmations.length);
             steamConfirmations.AcceptConfirmation(confirmations[0], (function(err, result) {if (err) return;}).bind(this));
 		}).bind(this));
 	}

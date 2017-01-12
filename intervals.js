@@ -1,8 +1,6 @@
-var auth = require('http-auth'),
-    scribe = require('scribe-js')(),
-    console = process.console,
-    config = require('./config/config.js'),
+var config = require('./config/config.js'),
     requestify = require('requestify');
+console = process.console;
 
 getOutNames();
 setInterval(getOutNames, 1000 * config.timers.give_out_timer);

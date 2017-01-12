@@ -4,16 +4,8 @@ var fs = require('fs'),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     redis_conf = require('./config/redis.js'),
-    socket_conf = require('./config/socket.js'),
-    scribe = require('scribe-js')({createDefaultConsole: false}),
-    console = scribe.console({console : {logInConsole: true},createBasic : false});
-    
-console.addLogger('notice', 'grey');
-console.addLogger('info', 'cyan');
-console.addLogger('log', 'white');
-console.addLogger('error', 'red');
-process.console = console;
-
+    socket_conf = require('./config/socket.js');
+console = process.console;
 if(socket_conf.unix){
     if ( fs.existsSync(socket_conf.ports.shop.path) ) { fs.unlinkSync(socket_conf.ports.shop.path); }
     process.umask(socket_conf.procumask);

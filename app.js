@@ -7,19 +7,10 @@ var config = require('./config/config.js'),
     io = require('socket.io')(server),
     redis = require('redis'),
     fs = require('fs'),
-    mysql = require('mysql'),
     requestify = require('requestify'),
-    scribe = require('scribe-js')({createDefaultConsole: false}),
-    console = scribe.console({console : {logInConsole: true},createBasic : false}),
     graphite = require('graphite-udp');
+console = process.console;
 if(config.graphite) var metric = graphite.createClient(config.graphite_conf);
-    
-console.addLogger('notice', 'grey');
-console.addLogger('info', 'cyan');
-console.addLogger('log', 'white');
-console.addLogger('error', 'red');
-process.console = console;
-
 var users = [];
 setInterval(function(){
     var us = [], uc = 0, uf = 0;
@@ -49,8 +40,7 @@ if(redis_conf.unix){
 } else {
     var redis_config = {
         'host': redis_conf.host,
-        'port': redis_conf.port,
-        'password': redis_conf.password
+        'port': redis_conf.port
     }
 }
 
@@ -197,7 +187,7 @@ redisClient.on("message", function (channel, message) {
                 }
             }
 		}, 10);
-		console.tag('Уведомление').info('Для: ' + mes.steamid + ' M:'+ mes.message);
+		console.tag('Уведомление').log('Для: ' + mes.steamid + ' M:'+ mes.message);
     }
 	if (channel == redisChannels.view_bet){
         var mes = JSON.parse(message);
@@ -262,7 +252,7 @@ io.sockets.on('connection', function(socket) {
 
 function updateOnline(){
     io.sockets.emit('online', Object.keys(io.sockets.adapter.rooms).length);
-    console.info('Connected ' + Object.keys(io.sockets.adapter.rooms).length + ' clients');
+    console.log('Connected ' + Object.keys(io.sockets.adapter.rooms).length + ' clients');
 }
 
 /* USERS ONLINE SITE END */
@@ -402,7 +392,7 @@ function checkSteamInventoryStatus() {
         .then(function (response) {
             var answer = JSON.parse(response.body);
             steamStatus = answer.result.services;
-            //console.tag('SteamStatus').info(steamStatus);
+            //console.tag('SteamStatus').log(steamStatus);
             client.set('steam.community.status', steamStatus.SteamCommunity);
             client.set('steam.inventory.status', steamStatus.IEconItems);
             var stat = 'good';
