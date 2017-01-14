@@ -1,6 +1,3 @@
-/*
-Config file
-*/
 var default_conf = {
     bonus_id: '76561197960265728'
 }

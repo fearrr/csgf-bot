@@ -1,6 +1,3 @@
-/*
-Config file
-*/
 var accounts = require('./accounts.js');
 var config = {
     graphite: false,
@@ -20,7 +17,7 @@ var config = {
     },
     web:{
         secretKey: 'Fzrc6bu0y7XTl74W8L',    // Provided to prevent HackingAttemps
-        domain: 'csgf.ru',            // Site IP for direct connecion
+        domain: 'beta.mh00.net',            // Site IP for direct connecion
         nameSite: 'http://csgf.ru/'        // Shown when buying or winnig something
     },
     steam:{

@@ -1,12 +1,12 @@
-var accounts = {  // your bots data
+var accounts = {
     classic:{
         0: {
-            steamid: '76561198067721846',
-            username: 'skyfis67rus',
-            password: 'nWZPzoSqCQgu4GHFa7xO21J594nZgbRpvQwMImpPWHD0r',
-            secret: 'H8XA4CpNVRkCeExfaz1ZV5WyqK8=',
-            identity_secret: 'oj43OcFfoMLG8HRPt2jYbTbZpWk='
-        },
+            steamid: '76561198282404874',
+            username: 'zettanalurzaish',
+            password: 'psNPSKzEmqBKIYpyQyd2sbU3GJGn6h',
+            secret: 'UwXVwOB+b40veuK716dlufOHwos=',
+            identity_secret: 'uXZiXdWjaFAogljIs7m4oe490iM='
+        }/*,
         1: {
             steamid: '76561198251620172',
             username: 'sotkadowvt',
@@ -20,9 +20,9 @@ var accounts = {  // your bots data
             password: 'i21k19Sv650817',
             secret: '32kukrOEzVI9qMV2oqPWD4TMxIk=',
             identity_secret: 'Ndvh8e5fo2CzGJIlLoJmPyebbbo='
-        }
+        }*/
     },
-    shop:{
+    /*shop:{
         0: {
             steamid: '76561198260157768',
             username: 'gaelisevencinc',
@@ -44,7 +44,6 @@ var accounts = {  // your bots data
             secret: 'hFCjzhgtmN4Rdn/lc3Pf7Ag+tCc=',
             identity_secret: 'x+8MzBTaqlGJ5ZpYDpRerA5iS4M='
         }
-    }
+    }*/
 }
-
 module.exports = accounts;

@@ -1,13 +1,15 @@
 var config = require('./config/config.js'),
     redis_conf = require('./config/redis.js'),
     socket_conf = require('./config/socket.js'),
+    cent_conf = require('./config/cent.js'),
     app = require('express')(),
     server = require('http').Server(app),
-    io = require('socket.io')(server),
     redis = require('redis'),
     fs = require('fs'),
+    jscent = require("jscent"),
     requestify = require('requestify');
 console = process.console;
+var c = new jscent(cent_conf);
 if(redis_conf.unix){
     var redis_config = {
         'path': redis_conf.path,
@@ -20,15 +22,6 @@ if(redis_conf.unix){
     }
 }
 var redisClient = redis.createClient(redis_config);
-if(socket_conf.unix){
-    if ( fs.existsSync(socket_conf.ports.double.path) ) { fs.unlinkSync(socket_conf.ports.double.path); }
-    process.umask(socket_conf.procumask);
-    server.listen(socket_conf.ports.double.path);
-    console.log('DOUBLE started on ' + socket_conf.ports.double.path);
-} else {
-    server.listen(socket_conf.ports.double.port, socket_conf.host);
-    console.log('DOUBLE started on ' + socket_conf.host + ':'  + socket_conf.ports.double.port);
-}
 
 setTimeout(rediSubscribe, 1000);
 function rediSubscribe() {
@@ -38,7 +31,6 @@ function rediSubscribe() {
 	redisClient.on("message", function (channel, message) {
 		if (channel == 'nbdouble') {
 			if (!timerStatus && !sliderStatus) getCurrentGame();
-			io.sockets.emit(channel, message);
 		}
 	});
 }
@@ -58,7 +50,7 @@ function getCurrentGame() {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
-		console.tag('Double').log('Текущая игра #' + game.id);
+		console.log('Текущая игра #' + game.id);
 		if (game.status != 0) { 
 			if (game.status != 3) { 
 				startTimer();
@@ -67,7 +59,7 @@ function getCurrentGame() {
 			}
 		}
 	}, function (response) {
-		console.tag('Игра').log('Ошибка [getCurrentGame]');
+		console.log('Ошибка [getCurrentGame]');
 		setTimeout(getCurrentGame, 1000);
 	});
 }
@@ -76,9 +68,9 @@ function startTimer() {
     var time = timerTime;
     timerStatus = true;
     clearInterval(timer);
-    console.tag('Double').log('Новая игра.');
+    console.log('Новая игра.');
     timer = setInterval(function () {
-        io.sockets.emit('dbtimer', time--);
+        c.publish("dbtimer", time--, function(err, resp){});
         if ((game.status == 1) && (time <= preFinishingTime)) {
             if (!preFinish) {
                 preFinish = true;
@@ -89,7 +81,7 @@ function startTimer() {
             clearInterval(timer);
             timerStatus = false;
 			sliderStatus = true;
-            console.tag('Double').log('Конец игры.');
+            console.log('Конец игры.');
             showSliderWinners();
         }
     }, 1000);
@@ -101,9 +93,9 @@ function setGameStatus(status) {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
-		console.tag('Double').log('Статус игры: ' + status);
+		console.log('Статус игры: ' + status);
 	}, function (response) {
-		console.tag('Double').error('Something wrong [setGameStatus]');
+		console.error('Something wrong [setGameStatus]');
 		setTimeout(setGameStatus, 1000);
 	});
 }
@@ -113,26 +105,26 @@ function showSliderWinners() {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		var winners = response.body;
-		console.tag('Double').log('Показываем слайдер!');
+		console.log('Показываем слайдер!');
 		setGameStatus(3);
 		var time = sliderTime;
 		var data = JSON.parse(winners);
 		data.showSlider = true;
 		clearInterval(ngtimer);
-		console.tag('Double').log('Отсчет пошел');
+		console.log('Отсчет пошел');
 		ngtimer = setInterval(function () {
 			time--;
 			if (time <= 10) data.showSlider = false;
-			io.sockets.emit('doubleslider', data);
+            c.publish("doubleslider", data, function(err, resp){});
 			if (time <= 0) {
 				clearInterval(ngtimer);
 				newGame();
-				console.tag('Игра').log('Отсчет окончен');
+				console.log('Отсчет окончен');
 				sliderStatus = false;
 			}
 		}, 1000);
 	}, function (response) {
-		console.tag('Double').error('Something wrong [showSlider]');
+		console.error('Something wrong [showSlider]');
 		setTimeout(showSliderWinners, 1000);
 	});
 }
@@ -143,11 +135,11 @@ function newGame() {
     }).then(function (response) {
 		var data = JSON.parse(response.body);
 		preFinish = false;
-		console.tag('Double').log('Новая игра! #' + data.id);
+		console.log('Новая игра! #' + data.id);
 		game = data;
-		io.sockets.emit('ngdouble', data.id);
+        c.publish("ngdouble", data.id, function(err, resp){});
 	}, function (response) {
-		console.tag('Double').error('Something wrong [newGame]');
+		console.error('Something wrong [newGame]');
 		setTimeout(newGame, 1000);
 	});
 }
