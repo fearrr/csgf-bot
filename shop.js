@@ -236,9 +236,11 @@ var queueProceed = function() {
         }
     });
     redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-        redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
-            depCheckOffer(offer);
-        });
+        if (length > 0 && WebSession) {
+            redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
+                depCheckOffer(offer);
+            });
+        }
     });
     if(depProcceed && !ccProcceed){
         ccProcceed = true;
@@ -654,6 +656,7 @@ var depCheckOffer = function(deposit_id) {
     steamOffers.getOffer({
         tradeOfferId: deposit_id
     }, function(err, body) {
+        if(!body) return;
         if(!body.response) return;
         if(body.response.offer){
             var offer = body.response.offer;
