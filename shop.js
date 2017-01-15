@@ -39,7 +39,7 @@ Client.on("message", function (channel, message) {
         MyInvToSite();
     }
 });
-if(socket_conf.unix){
+/*if(socket_conf.unix){
     if ( fs.existsSync(socket_conf.ports.deposit.gpath(bot_id)) ) { fs.unlinkSync(socket_conf.ports.deposit.gpath(bot_id)); }
     process.umask(socket_conf.procumask);
     app.listen(socket_conf.ports.deposit.gpath(bot_id));
@@ -47,7 +47,7 @@ if(socket_conf.unix){
 } else {
     server.listen(socket_conf.ports.deposit.port, socket_conf.host);
     console.log('SHOP started on ' + socket_conf.host + ':'  + socket_conf.ports.deposit.port);
-}
+}*/
 // Getting account info
 function account(){
     var data = {

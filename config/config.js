@@ -35,7 +35,7 @@ function admins(){
         sids.push(accounts.classic[id].steamid);
     }
     for (id in accounts.shop) {
-        sids.push(accounts.classic[id].steamid);
+        sids.push(accounts.shop[id].steamid);
     }
     return sids;
 }

@@ -22,7 +22,7 @@ var accounts = {
             identity_secret: 'Ndvh8e5fo2CzGJIlLoJmPyebbbo='
         }*/
     },
-    /*shop:{
+    shop:{
         0: {
             steamid: '76561198260157768',
             username: 'gaelisevencinc',
@@ -44,6 +44,6 @@ var accounts = {
             secret: 'hFCjzhgtmN4Rdn/lc3Pf7Ag+tCc=',
             identity_secret: 'x+8MzBTaqlGJ5ZpYDpRerA5iS4M='
         }
-    }*/
+    }
 }
 module.exports = accounts;
