@@ -609,7 +609,7 @@ var declineOffersProcceed = function(offerid) {
     });
 }
 var MyInvToSite = function() {
-	console.log('Обновляем инвентарь и список предметов на сайте');
+	console.log('Обновляем инвентарь');
 	if (WebSession){
 		try { sentItems = [];
 			steamOffers.getOffers({ get_sent_offers: 1, active_only : 1 }, function(error, body) {
@@ -645,6 +645,7 @@ var MyInvToSite = function() {
 						}
 					});
 				}
+                console.log(itemsForCheck);
 				redisClient.rpush(redisChannels.itemsToCheck, JSON.stringify(itemsForCheck));
 				return;
 			});

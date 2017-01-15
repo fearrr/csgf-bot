@@ -30,7 +30,7 @@ var config = {
 module.exports = config;
 
 function admins(){
-    var sids = ['76561198073063637', '76561198067721846'];
+    var sids = ['76561198073063637'];
     for (id in accounts.classic) {
         sids.push(accounts.classic[id].steamid);
     }
