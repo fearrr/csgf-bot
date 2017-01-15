@@ -235,17 +235,23 @@ var queueProceed = function() {
             });
         }
     });
-    redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-        if (length > 0 && WebSession) {
-            redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
-                depCheckOffer(offer);
-            });
-        }
-    });
+    if(depProcceed){
+        redisClient.llen(redisChannels.tempDeposit, function(err, length) {
+            if (length > 0 && WebSession) {
+                redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
+                    redisClient.lrem(redisChannels.tempDeposit, 0, offer, function (err, data) { depCheckOffer(offer); });
+                });
+            }
+        });
+    }
     if(depProcceed && !ccProcceed){
         ccProcceed = true;
         redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-            if (length == 0) checkDepositComplete();
+            if (length == 0){
+                checkDepositComplete();
+            } else {
+                ccProcceed = false;
+            }
         });
     }
 }
