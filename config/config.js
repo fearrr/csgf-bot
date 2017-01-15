@@ -1,6 +1,6 @@
 var accounts = require('./accounts.js');
 var config = {
-    graphite: false,
+    graphite: true,
     graphite_conf:{
         host: 'alpha.mh00.net', // graphite server host or ip 
         port: 2003, // graphite server udp port
@@ -17,7 +17,7 @@ var config = {
     },
     web:{
         secretKey: 'Fzrc6bu0y7XTl74W8L',    // Provided to prevent HackingAttemps
-        domain: 'beta.mh00.net',            // Site IP for direct connecion
+        domain: 'csgf.ru',            // Site IP for direct connecion
         nameSite: 'http://csgf.ru/'        // Shown when buying or winnig something
     },
     steam:{

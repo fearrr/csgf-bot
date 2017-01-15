@@ -1,9 +1,9 @@
 var redis_conf = {
-    host: '127.0.0.1',
-    port: '6379',
+    host: null,
+    port: null,
     password: 'g9LzUfRtX5Vnz4Kxb7',
     path: '/run/redis/redis.sock',
-    unix: false,
+    unix: true,
     channels:{
         bot: {
             betsList: 'bets.list',

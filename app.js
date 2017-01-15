@@ -13,16 +13,17 @@ var config = require('./config/config.js'),
 console = process.console;
 if(config.graphite) var metric = graphite.createClient(config.graphite_conf);
 var c = new jscent(cent_conf);
-var online = 0;
+var online = [];
 setInterval(function(){
     c.presence("online", function(err, message){
-        var data = Object.keys(message.body.data).map(function (key) { return ''; });
-        online = data.length;
-        c.publish("online", online, function(err, resp){});
+        online = Object.keys(message.body.data).map(function (key) { return message.body.data[key]['user']; });
+        c.publish("online", online.length, function(err, resp){});
     });
 }, 1000);
 setInterval(function(){
-    if(config.graphite) metric.put('users.online', online);
+    var users = [];
+    for(var key in online) if(users.indexOf(key) == -1) users.push(key);
+    if(config.graphite) metric.put('users.online', users.length);
 }, 50000);
 var bets_per_m = 0;
 setInterval(function(){
