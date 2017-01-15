@@ -93,7 +93,7 @@ var WebCookies = [],
 // Full login function
 function steamLogin(){
     // Reinit steam libs
-    console.tag('Бот #' + config.accounts[bot_id].account.username).warn('Бот запускается');
+    console.log('Бот запускается');
     steamClient = new Steam.SteamClient();
     steamUser = new Steam.SteamUser(steamClient);
     steamFriends = new Steam.SteamFriends(steamClient);
@@ -107,7 +107,7 @@ function steamLogin(){
     });
     steamClient.on('logOnResponse', function(logonResp) {
         if (logonResp.eresult === Steam.EResult.OK) {
-            console.tag('Бот #' + config.accounts[bot_id].account.username).warn('Вход выполнен!');
+            console.log('Вход выполнен!');
             steamFriends.setPersonaState(Steam.EPersonaState.Online);
             WebLogon();
         }
@@ -132,7 +132,7 @@ function WebLogon() {
                 if(!err){
                     WebSession = true;
                     WebCookies = newCookie;
-                    console.tag('Бот #' + config.accounts[bot_id].account.username).warn('Обмены доступны!');
+                    console.log('Обмены доступны!');
                     handleOffers();
                     steamConfirmations = new SteamMobileConfirmations({
                         steamid: config.accounts[bot_id].account.steamid,
@@ -157,7 +157,7 @@ hash = hash.digest('hex');
 var device_id = 'android:' + hash;
 // Steam logger init
 function steamLogger(log) {
-    if(typeof(log) == "string"||typeof(log) == "number"||typeof(log) == "boolean"||typeof(log) == "object") console.tag('Бот #' + config.accounts[bot_id].account.username).log(log);
+    if(typeof(log) == "string"||typeof(log) == "number"||typeof(log) == "boolean"||typeof(log) == "object") console.log(log);
 }
 // Errog counter
 function makeErr() {
@@ -170,13 +170,13 @@ function makeErr() {
 // Auth Mobile key generation
 function generatekey(secret) {
     code = SteamTotp.generateAuthCode(secret);
-	console.tag('Бот #' + config.accounts[bot_id].account.username).log('Код Авторизации : ' + code);
+	console.log('Код Авторизации : ' + code);
     return code;
 }
 // Err code parser
 // Disconected from steam function
 function disconnected(){
-    console.tag('Бот #' + config.accounts[bot_id].account.username).error('Отключен от стима');
+    console.error('Отключен от стима');
     WebSession = false;
 	setTimeout(function(){
 		steamLogin();
@@ -205,7 +205,7 @@ function handleOffers() {
             body.response.trade_offers_received.forEach(function(offer) {
                 if(offer.trade_offer_state == 2) {
                     if((offer.items_to_give == null && offer.items_to_receive != null)  || (config.admins.indexOf(offer.steamid_other) != -1)) {
-                        console.tag('Бот #' + config.accounts[bot_id].account.username).log('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other);
+                        console.log('Принимаем обмен #' + offer.tradeofferid + ' от: ' + offer.steamid_other);
                         steamOffers.acceptOffer({
                             tradeOfferId: offer.tradeofferid
                         }, function(error, traderesponse) {
@@ -224,7 +224,7 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken) {
             contextId: 2
         }, function(err, items) {
             if(err) {
-                console.tag('Бот #' + config.accounts[bot_id].account.username).error('Не могу загрузить свой инвентарь');
+                console.error('Не могу загрузить свой инвентарь');
                 makeErr();
                 return;
             }
@@ -243,14 +243,14 @@ var sendTradeOffer = function(appId, partnerSteamId, accessToken) {
                     itemsFromThem: [],
                 }, function(err, response) {
                     if(err) {
-                        console.tag('Бот #' + config.accounts[bot_id].account.username).error('Ошибка отправки обмена:' + err.message);
+                        console.error('Ошибка отправки обмена:' + err.message);
                         makeErr();
                         return;
                     }
-                    console.tag('Бот #' + config.accounts[bot_id].account.username).warn('Обмен #' + response.tradeofferid + ' отправлен!');
+                    console.log('Обмен #' + response.tradeofferid + ' отправлен!');
                 });
             } else {
-                console.tag('Бот #' + config.accounts[bot_id].account.username).log('Инвентарь пуст!');
+                console.log('Инвентарь пуст!');
             }
         });
     }
@@ -260,7 +260,7 @@ function AcceptMobileOffer() {
 		steamConfirmations.FetchConfirmations((function(err, confirmations) {
 			if (err){setTimeout(AcceptMobileOffer, 8000);return;}
 			if (!confirmations.length) return;
-            console.tag('Бот #' + config.accounts[bot_id].account.username).log('Ожидает подтверждения: ' + confirmations.length);
+            console.log('Ожидает подтверждения: ' + confirmations.length);
             steamConfirmations.AcceptConfirmation(confirmations[0], (function(err, result) {if (err) return;}).bind(this));
 		}).bind(this));
 	}
