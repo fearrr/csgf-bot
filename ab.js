@@ -60,8 +60,8 @@ var bot_id = process.argv[2],
         },
         time: 120,
         admins: ['76561198073063637']
-    },
-    console = process.console;
+    };
+console = process.console;
 var crypto = require('crypto'),
     fs = require('fs'),
     Steam = require('steam'),
