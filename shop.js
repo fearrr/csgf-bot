@@ -279,6 +279,7 @@ var queueDep = function() {
 // bot main functions
 function checkWorking(){
     if(((Date.now() - lastBetTime)/1000) >= config.timers.noActiveBot ){
+        console.log('Проверка ' + itemsToSaleProcced + ' ' + itemsToCheckProcced + ' ' + depProcceed + ' ' + declineProcceed + ' ' + checkProcceed + ' ' + sendProcceed);
         if(!itemsToSaleProcced && !itemsToCheckProcced && !depProcceed && !declineProcceed && !checkProcceed && !sendProcceed){
             lastBetTime = Date.now();
             steamClient.disconnect();
@@ -645,7 +646,6 @@ var MyInvToSite = function() {
 						}
 					});
 				}
-                console.log(itemsForCheck);
 				redisClient.rpush(redisChannels.itemsToCheck, JSON.stringify(itemsForCheck));
 				return;
 			});
