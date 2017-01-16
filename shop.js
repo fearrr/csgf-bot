@@ -227,30 +227,28 @@ var queueProceed = function() {
             });
         }
     });
-    redisClient.llen(redisChannels.offersToCheck, function (err, length) {
-        if (length > 0 && !checkProcceed && WebSession) {
-            checkProcceed = true;
-            redisClient.lindex(redisChannels.offersToCheck, 0, function (err, offer) {
-				checkOfferForExpired(offer);
-            });
-        }
-    });
-    if(depProcceed){
-        redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-            if (length > 0 && WebSession) {
-                redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
-                    redisClient.lrem(redisChannels.tempDeposit, 0, offer, function (err, data) { depCheckOffer(offer); });
+    if (!checkProcceed && WebSession) {
+        checkProcceed = true;
+        redisClient.llen(redisChannels.offersToCheck, function (err, length) {
+            if (length > 0) {
+                redisClient.lindex(redisChannels.offersToCheck, 0, function (err, offer) {
+                    checkOfferForExpired(offer);
                 });
+            } else {
+                checkProcceed = false;
             }
         });
     }
-    if(depProcceed && !ccProcceed){
-        ccProcceed = true;
+    if(depProcceed && WebSession && !ccProcceed){
         redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-            if (length == 0){
-                checkDepositComplete();
+            if (length > 0) {
+                console.log('Ожидает обработки:' + length);
+                redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
+                    redisClient.lrem(redisChannels.tempDeposit, 0, offer, function (err, data) { depCheckOffer(offer); });
+                });
             } else {
-                ccProcceed = false;
+                ccProcceed = true;
+                checkDepositComplete();
             }
         });
     }
@@ -285,7 +283,6 @@ var queueDep = function() {
 // bot main functions
 function checkWorking(){
     if(((Date.now() - lastBetTime)/1000) >= config.timers.noActiveBot ){
-        console.log('Проверка ' + itemsToSaleProcced + ' ' + itemsToCheckProcced + ' ' + depProcceed + ' ' + declineProcceed + ' ' + checkProcceed + ' ' + sendProcceed);
         if(!itemsToSaleProcced && !itemsToCheckProcced && !depProcceed && !declineProcceed && !checkProcceed && !sendProcceed){
             lastBetTime = Date.now();
             steamClient.disconnect();
@@ -459,7 +456,7 @@ app.get('/socket.io/sendTrade/' + bot_id + '/', function (req, res) {
                     accessToken: offer.accessToken,
                     itemsFromThem: senditems,
                     itemsFromMe: [],
-                    message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite
+                    message: 'Code: ' + code + ' | Сумма обмена: ' + offer.price + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite + 'shop/history'
                 }, function(err, r) {
                     if(err) {
                         console.error('Ошибка при отправке трейда' + err.message);
@@ -786,6 +783,7 @@ var checkDepositComplete = function () {
 		console.log('Обмены проверены !');
         depProcceed = false;
         ccProcceed = false;
+        lastBetTime = Date.now()
 	}, function (response) {
 		console.error('Something wrong with checkDepositComplete. Retry...');
 		setTimeout(function () {
