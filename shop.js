@@ -256,7 +256,7 @@ var queueProceed = function() {
 var queueDep = function() {
     if(!depProcceed && WebSession ){
         depProcceed = true;
-        requestify.post('http://' + config.web.domain + '/api/shop/deposit/toCheck', {
+        requestify.post(config.web.domain + '/api/shop/deposit/toCheck', {
             bot_id: bot_id,
             secretKey: config.web.secretKey
         }).then(function (response) {
@@ -669,7 +669,7 @@ var depCheckOffer = function(deposit_id) {
                 depItems = [],
                 ritems_classid = [],
                 siteitems_id = [];
-                requestify.post('http://' + config.web.domain + '/api/shop/itemlist', {
+                requestify.post(config.web.domain + '/api/shop/itemlist', {
                     secretKey: config.web.secretKey,
                     bot_id: bot_id
                 }).then(function (response) {
@@ -746,7 +746,7 @@ var setItemStatus = function (items, status) {
     redisClient.rpush(redisChannels.updateStatus, JSON.stringify(response));
 }
 var setItemStatusReq = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/setItemStatus', {
+    requestify.post(config.web.domain + '/api/shop/setItemStatus', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {itemStatus = false;}, function (response) {
@@ -757,7 +757,7 @@ var setItemStatusReq = function () {
 	});
 }
 var addNewItems = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/newItems', {
+    requestify.post(config.web.domain + '/api/shop/newItems', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {
@@ -775,7 +775,7 @@ var addNewItems = function () {
 }
 
 var checkDepositComplete = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/deposit/check', {
+    requestify.post(config.web.domain + '/api/shop/deposit/check', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {
@@ -793,7 +793,7 @@ var checkDepositComplete = function () {
 }
 
 var addCheckItems = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/checkShop', {
+    requestify.post(config.web.domain + '/api/shop/checkShop', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {

@@ -61,7 +61,7 @@ function parce(){
                         console.log('Загрузили: ' + page);
                         redisClient.rpush('parserSteam', result);
                         //fs.writeFile('page'+page, result);
-                        requestify.post('http://' + config.web.domain + '/api/parseSteam', {
+                        requestify.post(config.web.domain + '/api/parseSteam', {
                             secretKey: config.web.secretKey
                         }).then(function (response) {
                             console.log('Вещи загружены');
