@@ -43,7 +43,6 @@ if(redis_conf.unix){
 }
 var redisClient = redis.createClient(redis_config),
     client = redis.createClient(redis_config);
-    
 redisClient.subscribe('show.winners');
 redisClient.subscribe('queue');
 redisClient.subscribe('ctime');
