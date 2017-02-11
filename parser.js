@@ -58,10 +58,6 @@ function parce(){
                     UrlLoad.loadPage(url(page), 'get', function(result) {
                         console.log('Загрузили: ' + page);
                         redisClient.rpush('parserSteam', result);
-<<<<<<< HEAD
-=======
-                        //fs.writeFile('page'+page, result);
->>>>>>> cd43a2934d67cc66305d44b33594e0ced5408a16
                         requestify.post(config.web.domain + '/api/parseSteam', {
                             secretKey: config.web.secretKey
                         }).then(function (response) {
