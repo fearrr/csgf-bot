@@ -1,7 +1,7 @@
 var SteamTotp = require('steam-totp'),
     fs = require('fs'),
     SteamAuthLoad = require('node-steam-url-load'),
-    redis_conf = require('./config/redis.js'),
+    config_redis = require('./config/redis.js'),
     config = require('./config/config.js'),
     requestify = require('requestify'),
     redis = require('redis');
@@ -9,19 +9,17 @@ var SteamTotp = require('steam-totp'),
 console = process.console;
 var UrlLoad = new SteamAuthLoad();
 
-if(redis_conf.unix){
+if(config_redis.unix){
     var redis_config = {
-        'path': redis_conf.path,
-        'password': redis_conf.password
+        'path': config_redis.path,
+        'password': config_redis.password
     }
 } else {
     var redis_config = {
-        'host': redis_conf.host,
-        'port': redis_conf.port,
-        'password': redis_conf.password
+        'host': config_redis.host,
+        'port': config_redis.port
     }
 }
-
 var redisClient = redis.createClient(redis_config);
 
 var PCount = 90;
@@ -32,10 +30,13 @@ function url(page){
     var url = 'http://steamcommunity.com/market/search/render/?l=en&start=' + start + '&count=100&currency=5&search_descriptions=0&sort_column=price&sort_dir=asc&appid=730';
     return url;
 }
-
-var account = {
-    username: '544t4t',
-    password: 'i21k19Sv650817'
+function account(){
+    var data = {
+        account_name: '544t4t',
+        password: 'i21k19Sv650817',
+        two_factor_code: generatekey('32kukrOEzVI9qMV2oqPWD4TMxIk=')
+    };
+    return data;
 }
 function generatekey(secret) {
     code = SteamTotp.generateAuthCode(secret);
@@ -43,11 +44,8 @@ function generatekey(secret) {
 }
 parce();
 function parce(){
-    UrlLoad.login({
-        accountName: account.username,
-        password: account.password,
-        twoFactorCode: generatekey('32kukrOEzVI9qMV2oqPWD4TMxIk=')
-    }, function(error, session, cookie, steamguard, oauthToken) {
+    console.log('Запускаем парсер');
+    UrlLoad.login(account(), function(error, session, cookie, steamguard, oauthToken) {
         if (error) {
             console.log(error);
             return;
@@ -57,11 +55,10 @@ function parce(){
                 if(!loading){
                     loading = true;
                     console.log('Грузим страницу: ' + page);
-                    UrlLoad.loadPage(url(page), function(result) {
+                    UrlLoad.loadPage(url(page), 'get', function(result) {
                         console.log('Загрузили: ' + page);
                         redisClient.rpush('parserSteam', result);
-                        //fs.writeFile('page'+page, result);
-                        requestify.post('http://' + config.web.domain + '/api/parseSteam', {
+                        requestify.post(config.web.domain + '/api/parseSteam', {
                             secretKey: config.web.secretKey
                         }).then(function (response) {
                             console.log('Вещи загружены');
