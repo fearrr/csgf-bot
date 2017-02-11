@@ -39,7 +39,7 @@ Client.on("message", function (channel, message) {
         MyInvToSite();
     }
 });
-/*if(socket_conf.unix){
+if(socket_conf.unix){
     if ( fs.existsSync(socket_conf.ports.deposit.gpath(bot_id)) ) { fs.unlinkSync(socket_conf.ports.deposit.gpath(bot_id)); }
     process.umask(socket_conf.procumask);
     app.listen(socket_conf.ports.deposit.gpath(bot_id));
@@ -47,7 +47,7 @@ Client.on("message", function (channel, message) {
 } else {
     server.listen(socket_conf.ports.deposit.port, socket_conf.host);
     console.log('SHOP started on ' + socket_conf.host + ':'  + socket_conf.ports.deposit.port);
-}*/
+}
 // Getting account info
 function account(){
     var data = {
@@ -227,32 +227,36 @@ var queueProceed = function() {
             });
         }
     });
-    redisClient.llen(redisChannels.offersToCheck, function (err, length) {
-        if (length > 0 && !checkProcceed && WebSession) {
-            checkProcceed = true;
-            redisClient.lindex(redisChannels.offersToCheck, 0, function (err, offer) {
-				checkOfferForExpired(offer);
-            });
-        }
-    });
-    redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-        if (length > 0 && WebSession) {
-            redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
-                depCheckOffer(offer);
-            });
-        }
-    });
-    if(depProcceed && !ccProcceed){
-        ccProcceed = true;
+    if (!checkProcceed && WebSession) {
+        checkProcceed = true;
+        redisClient.llen(redisChannels.offersToCheck, function (err, length) {
+            if (length > 0) {
+                redisClient.lindex(redisChannels.offersToCheck, 0, function (err, offer) {
+                    checkOfferForExpired(offer);
+                });
+            } else {
+                checkProcceed = false;
+            }
+        });
+    }
+    if(depProcceed && WebSession && !ccProcceed){
         redisClient.llen(redisChannels.tempDeposit, function(err, length) {
-            if (length == 0) checkDepositComplete();
+            if (length > 0) {
+                console.log('Ожидает обработки:' + length);
+                redisClient.lindex(redisChannels.tempDeposit, 0, function (err, offer) {
+                    redisClient.lrem(redisChannels.tempDeposit, 0, offer, function (err, data) { depCheckOffer(offer); });
+                });
+            } else {
+                ccProcceed = true;
+                checkDepositComplete();
+            }
         });
     }
 }
 var queueDep = function() {
     if(!depProcceed && WebSession ){
         depProcceed = true;
-        requestify.post('http://' + config.web.domain + '/api/shop/deposit/toCheck', {
+        requestify.post(config.web.domain + '/api/shop/deposit/toCheck', {
             bot_id: bot_id,
             secretKey: config.web.secretKey
         }).then(function (response) {
@@ -279,7 +283,6 @@ var queueDep = function() {
 // bot main functions
 function checkWorking(){
     if(((Date.now() - lastBetTime)/1000) >= config.timers.noActiveBot ){
-        console.log('Проверка ' + itemsToSaleProcced + ' ' + itemsToCheckProcced + ' ' + depProcceed + ' ' + declineProcceed + ' ' + checkProcceed + ' ' + sendProcceed);
         if(!itemsToSaleProcced && !itemsToCheckProcced && !depProcceed && !declineProcceed && !checkProcceed && !sendProcceed){
             lastBetTime = Date.now();
             steamClient.disconnect();
@@ -453,7 +456,7 @@ app.get('/socket.io/sendTrade/' + bot_id + '/', function (req, res) {
                     accessToken: offer.accessToken,
                     itemsFromThem: senditems,
                     itemsFromMe: [],
-                    message: 'Code: ' + code + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite
+                    message: 'Code: ' + code + ' | Сумма обмена: ' + offer.price + ' | Перед принятием убедитесь в актуальности обмена на ' + config.web.nameSite + 'shop/history'
                 }, function(err, r) {
                     if(err) {
                         console.error('Ошибка при отправке трейда' + err.message);
@@ -666,7 +669,7 @@ var depCheckOffer = function(deposit_id) {
                 depItems = [],
                 ritems_classid = [],
                 siteitems_id = [];
-                requestify.post('http://' + config.web.domain + '/api/shop/itemlist', {
+                requestify.post(config.web.domain + '/api/shop/itemlist', {
                     secretKey: config.web.secretKey,
                     bot_id: bot_id
                 }).then(function (response) {
@@ -743,7 +746,7 @@ var setItemStatus = function (items, status) {
     redisClient.rpush(redisChannels.updateStatus, JSON.stringify(response));
 }
 var setItemStatusReq = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/setItemStatus', {
+    requestify.post(config.web.domain + '/api/shop/setItemStatus', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {itemStatus = false;}, function (response) {
@@ -754,7 +757,7 @@ var setItemStatusReq = function () {
 	});
 }
 var addNewItems = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/newItems', {
+    requestify.post(config.web.domain + '/api/shop/newItems', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {
@@ -772,7 +775,7 @@ var addNewItems = function () {
 }
 
 var checkDepositComplete = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/deposit/check', {
+    requestify.post(config.web.domain + '/api/shop/deposit/check', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {
@@ -780,6 +783,7 @@ var checkDepositComplete = function () {
 		console.log('Обмены проверены !');
         depProcceed = false;
         ccProcceed = false;
+        lastBetTime = Date.now()
 	}, function (response) {
 		console.error('Something wrong with checkDepositComplete. Retry...');
 		setTimeout(function () {
@@ -789,7 +793,7 @@ var checkDepositComplete = function () {
 }
 
 var addCheckItems = function () {
-    requestify.post('http://' + config.web.domain + '/api/shop/checkShop', {
+    requestify.post(config.web.domain + '/api/shop/checkShop', {
         secretKey: config.web.secretKey,
         bot_id: bot_id
     }).then(function (response) {

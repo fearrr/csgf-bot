@@ -46,7 +46,7 @@ var timer,
 var preFinish = false;
 
 function getCurrentGame() {
-    requestify.post('http://' + config.web.domain + '/api/double/getCurrentGame', {
+    requestify.post(config.web.domain + '/api/double/getCurrentGame', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
@@ -88,7 +88,7 @@ function startTimer() {
 }
 
 function setGameStatus(status) {
-    requestify.post('http://' + config.web.domain + '/api/double/setGameStatus', {
+    requestify.post(config.web.domain + '/api/double/setGameStatus', {
         status: status,
         secretKey: config.web.secretKey
     }).then(function (response) {
@@ -101,7 +101,7 @@ function setGameStatus(status) {
 }
 
 function showSliderWinners() {
-    requestify.post('http://' + config.web.domain + '/api/double/startGame', {
+    requestify.post(config.web.domain + '/api/double/startGame', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		var winners = response.body;
@@ -130,7 +130,7 @@ function showSliderWinners() {
 }
 
 function newGame() {
-    requestify.post('http://' + config.web.domain + '/api/double/newGame', {
+    requestify.post(config.web.domain + '/api/double/newGame', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		var data = JSON.parse(response.body);

@@ -13,16 +13,17 @@ var config = require('./config/config.js'),
 console = process.console;
 if(config.graphite) var metric = graphite.createClient(config.graphite_conf);
 var c = new jscent(cent_conf);
-var online = 0;
+var online = [];
 setInterval(function(){
     c.presence("online", function(err, message){
-        var data = Object.keys(message.body.data).map(function (key) { return ''; });
-        online = data.length;
-        c.publish("online", online, function(err, resp){});
+        online = Object.keys(message.body.data).map(function (key) { return message.body.data[key]['user']; });
+        c.publish("online", online.length, function(err, resp){});
     });
 }, 1000);
 setInterval(function(){
-    if(config.graphite) metric.put('users.online', online);
+    var users = [];
+    for(var key in online) if(users.indexOf(key) == -1) users.push(key);
+    if(config.graphite) metric.put('users.online', users.length);
 }, 50000);
 var bets_per_m = 0;
 setInterval(function(){
@@ -42,7 +43,6 @@ if(redis_conf.unix){
 }
 var redisClient = redis.createClient(redis_config),
     client = redis.createClient(redis_config);
-    
 redisClient.subscribe('show.winners');
 redisClient.subscribe('queue');
 redisClient.subscribe('ctime');
@@ -79,19 +79,18 @@ redisClient.on("message", function (channel, message) {
 		game.status = message.gameStatus;
         if (!timerStatus){
 			if (message.gameStatus == 1) startTimer();
-		} else {
-			var addtime = Math.round(Math.round(message.betprice)/10);
-			if (addtime<60){
-				time = time + addtime;
-			} else {
-				time = time + 60;
-			}
 		}
+        var addtime = Math.round(Math.round(message.betprice)/10);
+        if (addtime < 60){
+            time = time + addtime;
+        } else {
+            time = time + 60;
+        }
     }
 });
 
 function updateInformation() {
-    requestify.post('http://' + config.web.domain + '/api/update', {
+    requestify.post(config.web.domain + '/api/update', {
         secretKey: config.web.secretKey
     }).then(function(response) {
 		updateinfo = JSON.parse(response.body);
@@ -149,7 +148,7 @@ function startTimer() {
     }, 1000);
 }
 function getCurrentGame() {
-    requestify.post('http://' + config.web.domain + '/api/getCurrentGame', {
+    requestify.post(config.web.domain + '/api/getCurrentGame', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		game = JSON.parse(response.body);
@@ -165,7 +164,7 @@ function getCurrentGame() {
 }
 
 function showSliderWinners() {
-    requestify.post('http://' + config.web.domain + '/api/getWinners', {
+    requestify.post(config.web.domain + '/api/getWinners', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		var winners = response.body;
@@ -200,7 +199,7 @@ function startNGTimer(winners) {
 }
 
 function setGameStatus(status) {
-    requestify.post('http://' + config.web.domain + '/api/setGameStatus', {
+    requestify.post(config.web.domain + '/api/setGameStatus', {
 		status: status,
 		secretKey: config.web.secretKey
 	}).then(function (response) {
@@ -214,7 +213,7 @@ function setGameStatus(status) {
 }
 
 function newGame() {
-    requestify.post('http://' + config.web.domain + '/api/novigra', {
+    requestify.post(config.web.domain + '/api/novigra', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		updateinfo.last = updateinfo.last + 1;
@@ -267,7 +266,7 @@ function checkSteamInventoryStatus() {
 	}
 }
 var checkNewBet = function() {
-    requestify.post('http://' + config.web.domain + '/api/newBet', {
+    requestify.post(config.web.domain + '/api/newBet', {
         secretKey: config.web.secretKey
     }).then(function(response) {
         var answer = JSON.parse(response.body);

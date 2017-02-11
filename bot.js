@@ -612,7 +612,7 @@ var checkingOfferRemove = function(tradeofferid) {
 // Requests
 var setPrizeStatus = function(game, status) {
     //console.log(game,status,bot_id);
-    requestify.post('http://' + config.web.domain + '/api/setPrizeStatus', {
+    requestify.post(config.web.domain + '/api/setPrizeStatus', {
         secretKey: config.web.secretKey,
         game: game,
         status: status,
@@ -625,7 +625,7 @@ var setPrizeStatus = function(game, status) {
     });
 }
 var checkOfferPrice = function() {
-    requestify.post('http://' + config.web.domain + '/api/checkOffer', {
+    requestify.post(config.web.domain + '/api/checkOffer', {
         secretKey: config.web.secretKey,
         botid: bot_id
     }).then(function(response) {

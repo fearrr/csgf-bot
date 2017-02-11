@@ -4,7 +4,7 @@ console = process.console;
 getOutNames();
 setInterval(getOutNames, 1000 * config.timers.give_out_timer);
 function getOutNames() {
-    requestify.post('http://' + config.web.domain + '/api/out/check', {
+    requestify.post(config.web.domain + '/api/out/check', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		console.log('Пользователи проверены');
@@ -17,7 +17,7 @@ checkBroken();
 setInterval(checkBroken, 1000 * config.timers.checkBrokenGamesTime);
 
 function checkBroken() {
-    requestify.post('http://' + config.web.domain + '/api/checkBrokenGames', {
+    requestify.post(config.web.domain + '/api/checkBrokenGames', {
         secretKey: config.web.secretKey
     }).then(function (response) {
 		console.log('Трейды переотправлены');
@@ -27,7 +27,7 @@ function checkBroken() {
 }
 
 setInterval(function(){
-    requestify.post('http://' + config.web.domain + '/api/gifts/check', {
+    requestify.post(config.web.domain + '/api/gifts/check', {
         secretKey: config.web.secretKey
     }).then(function(response) {
         console.log('Отправка гифтов на обработку');
