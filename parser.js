@@ -43,6 +43,9 @@ function generatekey(secret) {
     return code;
 }
 parce();
+var starter = setInterval(function(){
+    parce();
+}, 1000*60*60*6);
 function parce(){
     console.log('Запускаем парсер');
     UrlLoad.login(account(), function(error, session, cookie, steamguard, oauthToken) {
@@ -68,6 +71,9 @@ function parce(){
                                 clearInterval(parcer);
                                 return;
                             }
+                        }, function(response) {
+                            console.log('Ошибка загрузки');
+                            loading = false;
                         });
                     });
                 }
